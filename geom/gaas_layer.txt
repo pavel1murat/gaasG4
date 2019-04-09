@@ -1,41 +1,19 @@
-//
+///////////////////////////////////////////////////////////////////////////////
 // config file to perform Geant4 studies using the Mu2e framework infrastructure
-//
-//
 // Original author K.L. Genser
-//
-
 // Units are mm, MeV
+///////////////////////////////////////////////////////////////////////////////
+string detector.name        = "gaas_layer"; // Change the name.
+
+bool g4.forceAuxEdgeVisible = true;         // make the volume mesh visible
+bool g4.doSurfaceCheck      = false;        // do not check for overlaps
 
 
-// Change the name.
-string detector.name           = "g4study";
-
-// version of the target geometry configuration
-
-int            mu2e.studyEnvVersion      = 5;
-// 1 tube; 2 box; 3 "calorimeter", 4 tube and a box
-
-// make the volume mesh visible
-bool g4.forceAuxEdgeVisible    = true;
-
-// do not check for overlaps
-bool g4.doSurfaceCheck         = false;
-
-// the "World Box"
-
-// a very "thin" vacuum
-string world.materialName        = "G4_Galactic";
-
-// make the world boundaries visible
-bool   world.boxVisible          = true;
-// make the volume transparent
-bool   world.boxSolid            = false;
-
+string world.materialName        = "G4_Galactic"; // the "World Box": a very "thin" vacuum
+bool   world.boxVisible          = true;          // make the world boundaries visible
+bool   world.boxSolid            = false;         // make the volume transparent
 double world.halfLength          = 10.0;
-double world.outerLayerThickness = 0.001;// the world "outer layer" to force a step point
-
-// the target (a tube) for mu2e.studyEnvVersion == 1
+double world.outerLayerThickness = 0.001;         // the world "outer layer" to force a step point
 
 bool           tube.visible = true;
 bool           tube.solid   = false;
@@ -55,10 +33,8 @@ int            tube.copyNumber = 3; // non 0 for volume tracking purposes
                                     // 0 & 1 are World and an auxiliary 
                                     // volume almost filling up the world
 
-// tube position in the world
-vector<double> tube.centerInWorld = {0., 0., 10.};
 
-// another target (a plane/box) for mu2e.studyEnvVersion == 2
+vector<double> tube.centerInWorld = {0., 0., 10.};  // tube position in the world
 
 bool           box.visible = true;
 bool           box.solid   = false;
@@ -66,7 +42,7 @@ bool           box.solid   = false;
 // simulate 2 micron thick GaAs layer , remember - units are mm !
 string         box.wallMaterialName = "GaAs";
 
-vector<double> box.halfLengths = {1., 1., 0.0010};
+vector<double> box.halfLengths       = {1., 1., 0.0010};
 
 int            box.copyNumber = 2; // non 0 for volume tracking purposes
                                    // 0 & 1 are World and an auxiliary 

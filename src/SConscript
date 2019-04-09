@@ -241,6 +241,7 @@ mainlib = helper.make_mainlib ( [
 helper.make_plugins( [
     mainlib,
     'Stntuple_mod',
+    'mu2e_Mu2eG4',
     'mu2e_SeedService_SeedService_service',
     'mu2e_Mu2eUtilities',
     'mu2e_GeometryService_GeometryService_service',

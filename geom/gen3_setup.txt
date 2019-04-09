@@ -1,0 +1,66 @@
+// -*- mode:c++ -*-
+///////////////////////////////////////////////////////////////////////////////
+// config file to perform Geant4 studies using the Mu2e framework infrastructure
+// Original author K.L. Genser
+// Units are mm, MeV
+///////////////////////////////////////////////////////////////////////////////
+string detector.name        = "gen3_setup"; // Change the name.
+
+bool g4.forceAuxEdgeVisible = true;         // make the volume mesh visible
+bool g4.doSurfaceCheck      = false;        // do not check for overlaps
+
+
+string world.materialName        = "G4_Galactic"; // the "World Box": a very "thin" vacuum
+bool   world.boxVisible          = true;          // make the world boundaries visible
+bool   world.boxSolid            = false;         // make the volume transparent
+double world.halfLength          = 50.0;          // mm ?
+double world.outerLayerThickness = 0.001;         // the world "outer layer" to force a step point
+//-----------------------------------------------------------------------------
+// 0 & 1 are World and an auxiliary, box volume almost filling up the world
+//-----------------------------------------------------------------------------
+bool           box.visible = true;
+bool           box.solid   = false;
+
+string         box.material  = "GaAs";
+vector<double> box.halfLengths   = {2.5, 0.5, 0.010}; // 20 um thick GaAs layer, mm
+vector<double> box.centerInWorld = {0., 0., -1.};     // sensor position
+int            box.copyNumber    = 2;                 // non-0 for tracking purposes
+//-----------------------------------------------------------------------------
+// photodiode
+//-----------------------------------------------------------------------------
+bool           pd.visible = true;
+bool           pd.solid   = false;
+
+string         pd.material  = "GaAs";
+vector<double> pd.halfLengths   = {0.05, 0.15, 0.00075};     // 1.5 um thick InGaAs layer, mm
+int            pd.copyNumber    = 3;                          // for tracking purposes
+//-----------------------------------------------------------------------------
+// describe the source holder - need to model absorption
+// have Mu2e materials - use polyethylene?
+//-----------------------------------------------------------------------------
+bool           tube.visible       = true;
+bool           tube.solid         = false;
+
+string         tube.material      = "Polyethylene";
+double         tube.rIn           = 3.0;
+double         tube.rOut          = 4.0;
+double         tube.halfLength    = 4.0;
+double         tube.phiRotZ       =  0.;
+vector<double> tube.centerInWorld = {0., 0., 4.}; // above zero
+int            tube.copyNumber    = 100; // non-0 for tracking purposes
+
+string         src1.material      = "G4_Al";
+double         src1.rIn           =   0;
+double         src1.rOut          = 3.0;
+double         src1.halfLength    = 3.75;
+double         src1.phiRotZ       =  0.;
+vector<double> src1.centerInWorld = {0., 0., 4.25}; // above zero
+int            src1.copyNumber    = 101; // non-0 for tracking purposes
+
+string         src2.material      = "StainlessSteel";
+double         src2.rIn           = 1.2;
+double         src2.rOut          = 3.0;
+double         src2.halfLength    = 0.25;
+double         src2.phiRotZ       =  0.;
+vector<double> src2.centerInWorld = {0., 0., 0.25}; // above zero
+int            src2.copyNumber    = 102; // non-0 for tracking purposes
