@@ -1,0 +1,8 @@
+// -*- mode:c++ -*-
+// used by the particle gun and geometry setup, keywords are defined by the particle gun
+//------------------------------------------------------------------------------
+string particleGun.sourceShape        = "cylinder" ;
+
+vector<double> particleGun.point      = { 0. , 0. ,  4. };
+vector<double> particleGun.halfLength = { 1.2, 1.2,  0. };
+

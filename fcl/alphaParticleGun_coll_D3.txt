@@ -1,13 +1,13 @@
 ///////////////////////////////////////////////////////////////////////////////
 // height of the source has to be consistent with the setup geometry
 ///////////////////////////////////////////////////////////////////////////////
-#include "gaasG4/geom/source_geometry.txt"
+#include "gaasG4/geom/source_geometry_coll_D3.txt"
 
 bool particleGun.do      = true;
 
-// Limits on cos(polar angle):
-double particleGun.czmin =  -1.;
-double particleGun.czmax =   0.;    //  1.;
+// Limits on cos(polar angle) for the D = 0.5 mm, H= 2mm collimator 
+double particleGun.czmin =    -1.;
+double particleGun.czmax =  -0.95.;    //  1.;
 
 // Limits on phi angle:
 double particleGun.phimin =   0.0;
@@ -16,8 +16,6 @@ double particleGun.phimax = 360.0;
 // Time limits in ns, relative to protons on target.
 double particleGun.tmin  =  0.0;
 double particleGun.tmax  =  0.0;
-
-// position: will figure out how to position the source
 
 // Limits on momentum: (MeV) - alpha-particle with Ekin=5.5 MeV 
 double particleGun.pmin = 202.;

@@ -18,7 +18,7 @@ stepperout: {
 }
 END_PROLOG
 
-process_name : Gen3Setup   # Give this job a name.
+process_name : Gen3SetupColl   # Give this job a name.
 
 source : {
   module_type : EmptyEvent
@@ -31,10 +31,10 @@ services : {
 	#destinations.log.noTimeStamps : true
     }
     
-    TFileService          : { fileName : "gen3_setup.hist" }
+    TFileService          : { fileName : "gen3_setup_coll_D2.hist" }
     RandomNumberGenerator : { }
 
-    GeometryService        : { inputFile      : "gaasG4/geom/gen3_setup.txt"
+    GeometryService        : { inputFile      : "gaasG4/geom/gen3_setup_coll_D2.txt"
 	simulatedDetector  : { tool_type      : "ConstructGen3Setup"}
     }
 
@@ -54,7 +54,7 @@ physics : {
 	#    generate : @local::generate
 	generate: {
 	    module_type          : EventGenerator
-	    inputfile            : "gaasG4/fcl/alphaParticleGun_4pi.txt"
+	    inputfile            : "gaasG4/fcl/alphaParticleGun_coll_D2.txt"
 	    allowReplacement     : true
 	    messageOnReplacement : true
 	}
@@ -93,7 +93,7 @@ physics : {
 		
 		fillDiagnosticHistograms : true
 		writeGDML                : false
-		GDMLFileName             : "gen3_setup.gdml"
+		GDMLFileName             : "gen3_setup_coll_D2.gdml"
 
 		# checkFieldMap              : 0    # not implemented (no field)
 		# printPhysicsProcessSummary : true
@@ -132,7 +132,7 @@ outputs:  {
 
   outfile : {
     module_type   :   RootOutput
-      fileName    :   "gen3_setup.art"
+      fileName    :   "gen3_setup_coll_D2.art"
   }
 
   dumper : {

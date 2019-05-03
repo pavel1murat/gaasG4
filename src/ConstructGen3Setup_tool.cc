@@ -60,6 +60,11 @@ namespace mu2e {
     // 2016-11-06 P.Murat: if needed, add GaAs as material
 
     G4NistManager* nist = G4NistManager::Instance();
+    nist->FindOrBuildMaterial("G4_Al",true,true);
+    nist->FindOrBuildMaterial("G4_Au",true,true);
+    
+    G4Material* aluminum = G4Material::GetMaterial("G4_Al",false);
+    //    G4Material* gold     = G4Material::GetMaterial("G4_Au",false);
 
     G4Material* gaas = G4Material::GetMaterial("GaAs",false);
 
@@ -73,7 +78,7 @@ namespace mu2e {
       gaas->AddElement( as, 1);
     }
 
-    // Stainless Steel (Medical Physics, Vol 25, No 10, Oct 1998) based on brachytherapy example
+    // polyethilene
 
     G4Material* poly = G4Material::GetMaterial("Polyethylene",false);
     if (poly == NULL) {
@@ -102,98 +107,148 @@ namespace mu2e {
     G4Colour  orange  (.75, .55, .0);
 //-----------------------------------------------------------------------------
 // construct source holder and the source - several tubes
+// source holder - an external polyethylene tube
 //-----------------------------------------------------------------------------
-    G4bool tubeVisible        = Config.getBool("tube.visible",true);
-    G4bool tubeSolid          = Config.getBool("tube.solid",true);
+    G4bool arodVisible    = Config.getBool("arod.visible",true);
+    G4bool arodSolid      = Config.getBool("arod.solid",true);
+//-----------------------------------------------------------------------------
+// aluminum rod
+//-----------------------------------------------------------------------------
+    double arod_halfLength = Config.getDouble("arod.halfLength");
 
-    TubsParams tubeParams( Config.getDouble("tube.rIn"),
-                           Config.getDouble("tube.rOut"),
-                           Config.getDouble("tube.halfLength"),
+    TubsParams arodParams( Config.getDouble("arod.rIn"),
+                           Config.getDouble("arod.rOut"),
+                           arod_halfLength,
                            0.*CLHEP::degree,
                            360.*CLHEP::degree );
+//-----------------------------------------------------------------------------
+// source position is defined in the .txt file, nominally - the particleGun
+// input file, thus 'particleGun.point'
+//-----------------------------------------------------------------------------
+    const G4ThreeVector source_pos(Config.getHep3Vector("particleGun.point"));
 
-    //    MaterialFinder materialFinder(Config);
-
-    //    G4Material* tubeMaterial = materialFinder.get("tube.material");
-
-    const G4ThreeVector tubeCenterInWorld(Config.getHep3Vector("tube.centerInWorld"));
-
-    // CLHEP::HepRotationZ rotZ(_config.getDouble("tube.phiRotZ")*CLHEP::degree);
-    // CLHEP::HepRotationY rotY(M_PI);
-    // G4RotationMatrix* rotation  = (sgn < 0 )?
-    //   reg.add(G4RotationMatrix(rotZ)) :
-    //   reg.add(G4RotationMatrix(rotZ*rotY));
-
-    VolumeInfo tubeVInfo(nestTubs( "SourceHolder",
-                                   tubeParams,
-                                   poly, // material
-                                   0, // rotation,
-                                   tubeCenterInWorld,
+    const G4ThreeVector arodCenterInWorld(source_pos.x(),source_pos.y(),source_pos.z()+arod_halfLength);
+    
+    VolumeInfo arodVInfo(nestTubs( "ARod",
+                                   arodParams,
+                                   aluminum,
+                                   0,                                // no rotation,
+                                   arodCenterInWorld,
                                    parentVInfo,
-                                   Config.getInt("tube.copyNumber"), // non-0 for tracking purposes
-                                   tubeVisible,
+                                   Config.getInt("arod.copyNumber"), // non-0 for tracking purposes
+                                   arodVisible,
                                    G4Color::Blue(),
-                                   tubeSolid,
+                                   arodSolid,
                                    forceAuxEdgeVisible,
                                    placePV,
                                    doSurfaceCheck
                                    ));
 //-----------------------------------------------------------------------------
-// source itself
+// the source itself is infinitely thin, coating layer
 //-----------------------------------------------------------------------------
-//    G4Material* src1Material = materialFinder.get("src1.material");
-
-    TubsParams src1Params( Config.getDouble("src1.rIn"),
-                           Config.getDouble("src1.rOut"),
-                           Config.getDouble("src1.halfLength"),
+    TubsParams coatParams( Config.getDouble("coat.rIn"),
+                           Config.getDouble("coat.rOut"),
+                           Config.getDouble("coat.halfThickness"),
                            0.*CLHEP::degree,
                            360.*CLHEP::degree );
 
-    const G4ThreeVector src1CenterInWorld(Config.getHep3Vector("src1.centerInWorld"));
-
-    // CLHEP::HepRotationZ rotZ(_config.getDouble("tube.phiRotZ")*CLHEP::degree);
-    // CLHEP::HepRotationY rotY(M_PI);
-    // G4RotationMatrix* rotation  = (sgn < 0 )?
-    //   reg.add(G4RotationMatrix(rotZ)) :
-    //   reg.add(G4RotationMatrix(rotZ*rotY));
-
-    VolumeInfo src1VInfo(nestTubs( "Src1",
-                                   src1Params,
-                                   steel,
-                                   0, // rotation,
-                                   src1CenterInWorld,
+    const G4ThreeVector coatCenterInWorld(arodCenterInWorld[0],
+					  arodCenterInWorld[1],
+					  arodCenterInWorld[2]-arod_halfLength-coatParams.zHalfLength());
+  
+    G4Material* coatMaterial = G4Material::GetMaterial(Config.getString("coat.material"),false);
+  
+    VolumeInfo coatVInfo(nestTubs( "Coat",
+                                   coatParams,
+                                   coatMaterial,
+                                   0,                                // rotation,
+                                   coatCenterInWorld,
                                    parentVInfo,
-                                   Config.getInt("src1.copyNumber"), // non-0 for tracking purposes
-                                   tubeVisible,
+                                   Config.getInt("coat.copyNumber"), // non-0 for tracking purposes
+                                   arodVisible,
                                    G4Color::Blue(),
-                                   tubeSolid,
+                                   arodSolid,
                                    forceAuxEdgeVisible,
                                    placePV,
                                    doSurfaceCheck
                                    ));
 //-----------------------------------------------------------------------------
-// source itself
+// wall: 0.5 mm deep hole 
 //-----------------------------------------------------------------------------
-//    G4Material* src2Material = materialFinder.get("src2.material");
-
-    TubsParams src2Params( Config.getDouble("src2.rIn"),
-                           Config.getDouble("src2.rOut"),
-                           Config.getDouble("src2.halfLength"),
+    TubsParams wallParams( Config.getDouble("wall.rIn"),
+                           Config.getDouble("wall.rOut"),
+                           Config.getDouble("wall.halfLength"),
                            0.*CLHEP::degree,
                            360.*CLHEP::degree );
 
-    const G4ThreeVector src2CenterInWorld(Config.getHep3Vector("src2.centerInWorld"));
+    const G4ThreeVector wallCenterInWorld(arodCenterInWorld[0],
+					  arodCenterInWorld[1],
+					  arodCenterInWorld[2]-arod_halfLength-wallParams.zHalfLength());
 
-    VolumeInfo src2VInfo(nestTubs( "Src2",
-                                   src2Params,
-                                   steel,
-                                   0, // rotation,
-                                   src2CenterInWorld,
+    VolumeInfo wallVInfo(nestTubs( "Wall",
+                                   wallParams,
+                                   aluminum,
+                                   0,                                // no rotation,
+                                   wallCenterInWorld,
                                    parentVInfo,
-                                   Config.getInt("src2.copyNumber"), // non-0 for tracking purposes
-                                   tubeVisible,
+                                   Config.getInt("wall.copyNumber"), // non-0 for tracking purposes
+                                   arodVisible,
                                    G4Color::Blue(),
-                                   tubeSolid,
+                                   arodSolid,
+                                   forceAuxEdgeVisible,
+                                   placePV,
+                                   doSurfaceCheck
+                                   ));
+//-----------------------------------------------------------------------------
+// "collimator" 
+//-----------------------------------------------------------------------------
+    TubsParams collParams( Config.getDouble("coll.rIn"),
+                           Config.getDouble("coll.rOut"),
+                           Config.getDouble("coll.halfLength"),
+                           0.*CLHEP::degree,
+                           360.*CLHEP::degree );
+
+    const G4ThreeVector collCenterInWorld(arodCenterInWorld[0],
+					  arodCenterInWorld[1],
+					  wallCenterInWorld[2]-wallParams.zHalfLength()-collParams.zHalfLength());
+
+    VolumeInfo collVInfo(nestTubs( "Coll",
+                                   collParams,
+                                   poly,
+                                   0,                                // rotation,
+                                   collCenterInWorld,
+                                   parentVInfo,
+                                   Config.getInt("coll.copyNumber"), // non-0 for tracking purposes
+                                   arodVisible,
+                                   G4Color::Blue(),
+                                   arodSolid,
+                                   forceAuxEdgeVisible,
+                                   placePV,
+                                   doSurfaceCheck
+                                   ));
+//-----------------------------------------------------------------------------
+// virtual detector just below zero
+//-----------------------------------------------------------------------------
+    TubsParams vd1Params( Config.getDouble("vd1.rIn"),
+			  Config.getDouble("vd1.rOut"),
+			  Config.getDouble("vd1.halfLength"),
+			  0.*CLHEP::degree,
+			  360.*CLHEP::degree );
+
+    const G4ThreeVector vd1CenterInWorld(Config.getHep3Vector("vd1.centerInWorld"));
+
+    G4Material* vd1Material = G4Material::GetMaterial(Config.getString("vd1.material"),false);
+
+    VolumeInfo vd1VInfo(nestTubs( "Vd1",
+                                   vd1Params,
+                                   vd1Material,
+                                   0, // rotation,
+                                   vd1CenterInWorld,
+                                   parentVInfo,
+                                   Config.getInt("vd1.copyNumber"), // non-0 for tracking purposes
+                                   arodVisible,
+                                   G4Color::Blue(),
+                                   arodSolid,
                                    forceAuxEdgeVisible,
                                    placePV,
                                    doSurfaceCheck
@@ -201,58 +256,198 @@ namespace mu2e {
 //-----------------------------------------------------------------------------
 // construct and position sensor
 //-----------------------------------------------------------------------------
-    G4bool boxVisible        = Config.getBool("box.visible",true);
-    G4bool boxSolid          = Config.getBool("box.solid",true);
+    G4bool sensorVisible        = Config.getBool("sensor.visible",true);
+    G4bool sensorSolid          = Config.getBool("sensor.solid",true);
 
-    vector<double> boxParams;
-    Config.getVectorDouble( "box.halfLengths", boxParams);
+    vector<double> sensorParams;
+    Config.getVectorDouble( "sensor.halfLengths", sensorParams);
 
-    const G4ThreeVector boxCenterInWorld(Config.getHep3Vector("box.centerInWorld"));
+    const G4ThreeVector sensorCenterInWorld(Config.getHep3Vector("sensor.centerInWorld"));
 
     VolumeInfo box(nestBox( "GaasSensor",
-			    boxParams,
+			    sensorParams,
 			    gaas,
 			    0,                               // no rotation
-			    boxCenterInWorld,
+			    sensorCenterInWorld,
 			    parentVInfo,
-			    Config.getInt("box.copyNumber"), // assign copy nuber for volume tracking purposes
-			    boxVisible,
+			    Config.getInt("sensor.copyNumber"), // for tracking purposes
+			    sensorVisible,
 			    orange,
-			    boxSolid,
+			    sensorSolid,
 			    forceAuxEdgeVisible,
 			    placePV,
 			    doSurfaceCheck
 			    ));
 //-----------------------------------------------------------------------------
-// construct and position the photodiode
+// construct and position the photodiodes - all 7 of them
 //-----------------------------------------------------------------------------
-    G4bool pdVisible        = Config.getBool("pd.visible",true);
-    G4bool pdSolid          = Config.getBool("pd.solid",true);
+    G4bool pdVisible        = Config.getBool("pd0.visible",true);
+    G4bool pdSolid          = Config.getBool("pd0.solid",true);
 
-    // G4Material* pdMaterial = materialFinder.get("pd.material");
+    vector<double> pd0_params;
+    Config.getVectorDouble("pd0.halfLengths",pd0_params);
 
-    vector<double> pdParams;
-    Config.getVectorDouble("pd.halfLengths",pdParams);
+    double pd_half_thickness = pd0_params[2];
+    double pd_z              = sensorCenterInWorld.z()+sensorParams[2]+pd_half_thickness;
 
-    G4ThreeVector pdPos;
-    pdPos.set(boxCenterInWorld.x()+boxParams[0]-0.5,
-	      boxCenterInWorld.y(),
-	      boxCenterInWorld.z()+boxParams[2]+pdParams[2]);
+    G4ThreeVector pd0_pos;
+    pd0_pos.set(sensorCenterInWorld.x()-sensorParams[0]+0.285+pd0_params[0],
+		sensorCenterInWorld.y(),pd_z);
 
-    VolumeInfo pd (nestBox( "InGaAsPD",
-			    pdParams,
-			    gaas,
-			    0,                                 // no rotation
-			    pdPos,
-			    parentVInfo,
-			    Config.getInt("pd.copyNumber"), // assign copy nuber for volume tracking purposes
-			    pdVisible,
-			    G4Color::Red(),
-			    pdSolid,
-			    forceAuxEdgeVisible,
-			    placePV,
-			    doSurfaceCheck
-			    ));
+    VolumeInfo pd0 (nestBox( "InGaAsPD0",
+			     pd0_params,
+			     gaas,
+			     0,                                 // no rotation
+			     pd0_pos,
+			     parentVInfo,
+			     Config.getInt("pd0.copyNumber"), // for volume tracking purposes
+			     pdVisible,
+			     G4Color::Red(),
+			     pdSolid,
+			     forceAuxEdgeVisible,
+			     placePV,
+			     doSurfaceCheck
+			     ));
+//-----------------------------------------------------------------------------
+// photodiode #1
+//-----------------------------------------------------------------------------
+    vector<double> pd1_params;
+    Config.getVectorDouble("pd1.halfLengths",pd1_params);
+
+    double pd16_ymin = sensorCenterInWorld.y()-sensorParams[1]+0.120;
+
+    G4ThreeVector pd1_pos;
+    pd1_pos.set(pd0_pos[0]+pd0_params[0]+0.070+pd1_params[0],pd16_ymin+pd1_params[1],pd_z);
+
+    VolumeInfo pd1 (nestBox( "InGaAsPD1",
+			     pd1_params,
+			     gaas,
+			     0,                                 // no rotation
+			     pd1_pos,
+			     parentVInfo,
+			     Config.getInt("pd1.copyNumber"), // assign copy nuber for volume tracking purposes
+			     pdVisible,
+			     G4Color::Red(),
+			     pdSolid,
+			     forceAuxEdgeVisible,
+			     placePV,
+			     doSurfaceCheck
+			     ));
+//-----------------------------------------------------------------------------
+// photodiode #2
+//-----------------------------------------------------------------------------
+    vector<double> pd2_params;
+    Config.getVectorDouble("pd2.halfLengths",pd2_params);
+
+    G4ThreeVector pd2_pos;
+    pd2_pos.set(pd1_pos[0]+pd1_params[0]+0.10+pd2_params[0],pd16_ymin+pd2_params[1],pd_z);
+
+    VolumeInfo pd2 (nestBox( "InGaAsPD2",
+			     pd2_params,
+			     gaas,
+			     0,                                 // no rotation
+			     pd2_pos,
+			     parentVInfo,
+			     Config.getInt("pd2.copyNumber"), // for tracking purposes
+			     pdVisible,
+			     G4Color::Red(),
+			     pdSolid,
+			     forceAuxEdgeVisible,
+			     placePV,
+			     doSurfaceCheck
+			     ));
+//-----------------------------------------------------------------------------
+// photodiode #3
+//-----------------------------------------------------------------------------
+    vector<double> pd3_params;
+    Config.getVectorDouble("pd3.halfLengths",pd3_params);
+
+    G4ThreeVector pd3_pos;
+    pd3_pos.set(pd2_pos[0]+pd2_params[0]+0.10+pd3_params[0],pd16_ymin+pd3_params[1],pd_z);
+
+    VolumeInfo pd3 (nestBox( "InGaAsPD3",
+			     pd3_params,
+			     gaas,
+			     0,                                 // no rotation
+			     pd3_pos,
+			     parentVInfo,
+			     Config.getInt("pd3.copyNumber"), // assign copy nuber for volume tracking purposes
+			     pdVisible,
+			     G4Color::Red(),
+			     pdSolid,
+			     forceAuxEdgeVisible,
+			     placePV,
+			     doSurfaceCheck
+			     ));
+//-----------------------------------------------------------------------------
+// photodiode #4
+//-----------------------------------------------------------------------------
+    vector<double> pd4_params;
+    Config.getVectorDouble("pd4.halfLengths",pd4_params);
+
+    G4ThreeVector pd4_pos;
+    pd4_pos.set(pd3_pos[0]+pd3_params[0]+0.10+pd4_params[0],pd16_ymin+pd4_params[1],pd_z);
+
+    VolumeInfo pd4 (nestBox( "InGaAsPD4",
+			     pd4_params,
+			     gaas,
+			     0,                                 // no rotation
+			     pd4_pos,
+			     parentVInfo,
+			     Config.getInt("pd4.copyNumber"), // assign copy number for volume tracking purposes
+			     pdVisible,
+			     G4Color::Red(),
+			     pdSolid,
+			     forceAuxEdgeVisible,
+			     placePV,
+			     doSurfaceCheck
+			     ));
+//-----------------------------------------------------------------------------
+// photodiode #5
+//-----------------------------------------------------------------------------
+    vector<double> pd5_params;
+    Config.getVectorDouble("pd5.halfLengths",pd5_params);
+
+    G4ThreeVector pd5_pos;
+    pd5_pos.set(pd4_pos[0]+pd4_params[0]+0.100+pd5_params[0],pd16_ymin+pd5_params[1],pd_z);
+
+    VolumeInfo pd5 (nestBox( "InGaAsPD5",
+			     pd5_params,
+			     gaas,
+			     0,                                 // no rotation
+			     pd5_pos,
+			     parentVInfo,
+			     Config.getInt("pd5.copyNumber"), // for tracking purposes
+			     pdVisible,
+			     G4Color::Red(),
+			     pdSolid,
+			     forceAuxEdgeVisible,
+			     placePV,
+			     doSurfaceCheck
+			     ));
+//-----------------------------------------------------------------------------
+// photodiode #6
+//-----------------------------------------------------------------------------
+    vector<double> pd6_params;
+    Config.getVectorDouble("pd6.halfLengths",pd6_params);
+
+    G4ThreeVector pd6_pos;
+    pd6_pos.set(pd5_pos[0]+pd5_params[0]+0.100+pd6_params[0],pd16_ymin+pd6_params[1],pd_z);
+
+    VolumeInfo pd6 (nestBox( "InGaAsPD6",
+			     pd6_params,
+			     gaas,
+			     0,                                 // no rotation
+			     pd6_pos,
+			     parentVInfo,
+			     Config.getInt("pd6.copyNumber"), // assign copy number for volume tracking purposes
+			     pdVisible,
+			     G4Color::Red(),
+			     pdSolid,
+			     forceAuxEdgeVisible,
+			     placePV,
+			     doSurfaceCheck
+			     ));
     return 0;
   }
 

@@ -12,3 +12,4 @@
 *.png
 *_rdict.pcm
 *.os
+*/*.os

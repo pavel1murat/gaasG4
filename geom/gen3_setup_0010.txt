@@ -39,13 +39,14 @@ int            arod.copyNumber    = 101; // non-0 for tracking purposes
 //-----------------------------------------------------------------------------
 // assume the source itself to be infinitely thin 
 // estimated thickness of a 1 microCurie Am241 source is about 5nm
-// gold coating layer, 1.94 microns, is on top of the Am241 source
-// the resulting alpha particle energy is 4.61 MeV
+// coating layer on top of Am241 source
+// height and half-thickness of the coating need to be modified together:
+// zWorld+dz/2 = 0.5
 //-----------------------------------------------------------------------------
 string         coat.material      = "G4_Au";
 double         coat.rIn           = 0;
 double         coat.rOut          = 1.2;
-double         coat.halfThickness = 0.00097;
+double         coat.halfThickness = 0.0010;
 double         coat.phiRotZ       =  0.;
 int            coat.copyNumber    = 102; // non-0 for tracking purposes
 //-----------------------------------------------------------------------------
@@ -87,7 +88,7 @@ bool           sensor.solid   = false;
 string         sensor.material      = "GaAs";
 vector<double> sensor.halfLengths   = {2., 0.35,  0.010 }; // 20 um thick GaAs layer, mm
 vector<double> sensor.centerInWorld = {0., 0.  , -0.010 }; // sensor position
-int            sensor.copyNumber    = 1010;                // non-0 for tracking purposes
+int            sensor.copyNumber    = 2000;                // non-0 for tracking purposes
 //-----------------------------------------------------------------------------
 // photodiodes - 7 of them, right on top of the sensor
 //-----------------------------------------------------------------------------

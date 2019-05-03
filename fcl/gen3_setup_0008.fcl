@@ -31,10 +31,10 @@ services : {
 	#destinations.log.noTimeStamps : true
     }
     
-    TFileService          : { fileName : "gen3_setup.hist" }
+    TFileService          : { fileName : "gen3_setup_0008.hist" }
     RandomNumberGenerator : { }
 
-    GeometryService        : { inputFile      : "gaasG4/geom/gen3_setup.txt"
+    GeometryService        : { inputFile      : "gaasG4/geom/gen3_setup_0008.txt"
 	simulatedDetector  : { tool_type      : "ConstructGen3Setup"}
     }
 
@@ -54,7 +54,7 @@ physics : {
 	#    generate : @local::generate
 	generate: {
 	    module_type          : EventGenerator
-	    inputfile            : "gaasG4/fcl/alphaParticleGun_4pi.txt"
+	    inputfile            : "gaasG4/fcl/alphaParticleGun.txt"
 	    allowReplacement     : true
 	    messageOnReplacement : true
 	}
@@ -89,11 +89,11 @@ physics : {
 		# printElements     : true
 		# worldVerbosityLevel : 2
 		# trackingVerbosityLevel : 1
-		# steppingVerbosityLevel : 1
+		steppingVerbosityLevel : 1
 		
 		fillDiagnosticHistograms : true
-		writeGDML                : false
-		GDMLFileName             : "gen3_setup.gdml"
+		writeGDML                : true
+		GDMLFileName             : "gen3_setup_0008.gdml"
 
 		# checkFieldMap              : 0    # not implemented (no field)
 		# printPhysicsProcessSummary : true
@@ -132,7 +132,7 @@ outputs:  {
 
   outfile : {
     module_type   :   RootOutput
-      fileName    :   "gen3_setup.art"
+      fileName    :   "gen3_setup_0008.art"
   }
 
   dumper : {

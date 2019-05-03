@@ -3,13 +3,15 @@
 //
 // Original author K. Genser based on the "standard particle Gun"
 // added ParticleGun process
+//-----------------------------------------------------------------------------
+#include "gaasG4/geom/source_geometry.txt"
 
 // enable process
 bool particleGun.do = true;
 
 // Limits on cos(polar angle):
-double particleGun.czmin =  1.;
-double particleGun.czmax =  1.;
+double particleGun.czmin =  -1.;
+double particleGun.czmax =  -1.;
 
 // Limits on phi angle:
 double particleGun.phimin = 0.0;
@@ -19,14 +21,9 @@ double particleGun.phimax = 0.0;
 double particleGun.tmin  =  0.0;
 double particleGun.tmax  =  0.0;
 
-// position
-vector<double> particleGun.point = {0., 0., -4.};
-
-vector<double> particleGun.halfLength = { 0., 0., 0. };
-
-// Limits on momentum: (MeV) - alpha-particle with Ekin=5.5 MeV 
-double particleGun.pmin = 202.;
-double particleGun.pmax = 202.;
+// Limits on momentum: (MeV) - alpha-particle with Ekin=5.486 MeV 
+double particleGun.pmin = 202.305;
+double particleGun.pmax = 202.305;
 
 // Particle Id, see e.g. GlobalConstantsService/data/mass_width_2008.mc
 // pi  211

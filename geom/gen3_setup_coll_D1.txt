@@ -4,9 +4,9 @@
 // Original author K.L. Genser
 // Units are mm, MeV
 ///////////////////////////////////////////////////////////////////////////////
-#include "gaasG4/geom/source_geometry.txt"
+#include "gaasG4/geom/source_geometry_coll_D1.txt"
 
-string detector.name        = "gen3_setup"; // Change the name.
+string detector.name        = "gen3_setup_coll_D1"; // Change the name.
 
 bool g4.forceAuxEdgeVisible = true;         // make the volume mesh visible
 bool g4.doSurfaceCheck      = false;        // do not check for overlaps
@@ -58,14 +58,12 @@ double         wall.halfLength    = 0.25;
 int            wall.copyNumber    = 103;     // non-0 for tracking purposes
 //-----------------------------------------------------------------------------
 // collimator - may be fully open
-// uncollimated version
+// collimated version: hole D=0.5mm
 //-----------------------------------------------------------------------------
 string         coll.material      = "G4_Al";
+double         coll.rIn           = 0.25;
 double         coll.rOut          = 3.0;
-// double         coll.rIn           = 1.2;
-// double         coll.halfLength    = 1.0;
-double         coll.rIn           = 2.99;
-double         coll.halfLength    = 0.01;
+double         coll.halfLength    = 1.0;
 int            coll.copyNumber    = 104;     // non-0 for tracking purposes
 //-----------------------------------------------------------------------------
 // "virtual detector" at Z=0: a very thin (1 um) volume 

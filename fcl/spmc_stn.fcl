@@ -1,0 +1,98 @@
+# -*- mode:tcl -*-
+#------------------------------------------------------------------------------
+# make StepPointMC's STNTUPLE for GaAs QD simulation
+#------------------------------------------------------------------------------
+BEGIN_PROLOG
+  TIME_OFFSET_MAPS @protect_ignore: { inputs : [] }
+END_PROLOG
+
+#include "fcl/minimalMessageService.fcl"
+#include "fcl/standardProducers.fcl"
+#include "fcl/standardServices.fcl"
+
+#include "Stntuple/fcl/prolog.fcl"
+
+BEGIN_PROLOG
+  pdgCode                         : @local::Particle.eminus
+  bgHitFiles                      : @nil
+END_PROLOG
+
+#include "Stntuple/fcl/templates.fcl"
+
+process_name : G4S3MothersStn
+
+source       : { module_type : RootInput 
+# use one of the concatenated Stage1 files 
+    fileNames : ["/mu2e/data/users/murat/datasets/ts3_tooth/v2/g4s3/00000/sim.murat.cd3-beam-g4s3-tgtstops.v622.001002_00010600.art"]
+}
+
+outputs      : { @table::Stntuple.outputs   }
+producers    : { @table::Stntuple.producers }
+filters      : { @table::Stntuple.filters   }
+analyzers    : { @table::Stntuple.analyzers }
+paths        : { @table::Stntuple.paths     }
+
+physics : {
+    producers: { @table::producers 
+	generate                 : { @table::producers.egun }
+# for CE, not old background mixing - default: 'compressPVDetector'
+	CaloShowerStepFromStepPt : { @table::producers.CaloShowerStepFromStepPt  
+	    physVolInfoInput: "g4run" 
+	}
+    }
+    
+    filters  : { @table::filters 
+	StntupleMaker: { @table::filters.StntupleMaker
+#------------------------------------------------------------------------------
+# disable everything, enable StepPointMC
+#------------------------------------------------------------------------------
+	    makeClusters        : 0
+	    makePid             : 0
+	    makeTracks          : 0
+	    makeTrackSeeds      : 0
+	    makeVDHits          : 0
+	    makeStepPointMC     : 1
+	    makeSimp            : 0  # requires StrawDigiMCs to be present
+
+# suppress calculation of MC time offsets, not really needed, just an example
+	    TimeOffsets         : {}
+
+	    spmcBlockName       : ["SpmcBlock"    ]
+	    spmcCollTag         : ["g4run:stepper"]
+	    genpCollTag         : "generate"
+	    simpCollTag         : "g4run"
+	}
+
+	InitStntuple : { @table::filters.InitStntuple 
+	    histFileName : "nts._USER_._DATASET_.spmc_stn.0000001.stn" 
+	}
+    }
+
+    analyzers : { @table::analyzers }
+
+    @table::paths
+
+    p1            : [ @sequence::stnmaker_seq ]
+    trigger_paths : [ p1 ]
+    #    out : [detectorOutput]  # detectorOutput is defined in Stntuple/fcl/templates.fcl
+    out           : [ ]
+#     end_paths     : [ gcl, out ]
+    end_paths     : [ out ]
+}
+
+services.TFileService.fileName            : "nts._USER_._DATASET_.spmc_stn.00000001.root"
+#------------------------------------------------------------------------------
+# uncomment the next 2 lines if you want the DST file to be written out
+#-----------------------------------------------------------------------------
+# physics.out                               : [ detectorOutput ]
+# outputs.detectorOutput.SelectEvents       : [ path_gen_digi_reco_stn_dem_dmm ]
+# outputs.detectorOutput.fileName           : "aaa._USER_._DATASET_.s3_mothers_stn.00000001.art"
+#------------------------------------------------------------------------------
+# debugging
+#------------------------------------------------------------------------------
+# physics.producers.CalPatRecDem.diagLevel : 1
+# physics.producers.CalPatRecDmm.diagLevel : 1
+# physics.producers.AvikPID.debugLevel     : 100
+#------------------------------------------------------------------------------
+# everything below is appended by murat/scripts/submit_mu2e_job
+#------------------------------------------------------------------------------
