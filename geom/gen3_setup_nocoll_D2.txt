@@ -4,9 +4,9 @@
 // Original author K.L. Genser
 // Units are mm, MeV
 ///////////////////////////////////////////////////////////////////////////////
-#include "gaasG4/geom/source_geometry.txt"
+#include "gaasG4/geom/source_geometry_nocoll_D2.txt"
 
-string detector.name        = "gen3_setup"; // Change the name.
+string detector.name        = "gen3_setup_nocoll_D2"; // Change the name.
 
 bool g4.forceAuxEdgeVisible = true;         // make the volume mesh visible
 bool g4.doSurfaceCheck      = false;        // do not check for overlaps
@@ -21,8 +21,7 @@ double world.outerLayerThickness = 0.001;         // the world "outer layer" to 
 // describe the source holder - need to model absorption
 // have Mu2e materials - use polyethylene?
 //-----------------------------------------------------------------------------
-vector<double> particleGun.point = { 0. , 0. ,  3. };
-double         source.z          = particleGun.point.z ;  // mm - will tha work ?
+double     source.z               = 4. ;  // mm
 //-----------------------------------------------------------------------------
 // Aluminum rod inside the holder, material doesn't really matter
 //-----------------------------------------------------------------------------
@@ -59,14 +58,12 @@ double         wall.halfLength    = 0.25;
 int            wall.copyNumber    = 103;     // non-0 for tracking purposes
 //-----------------------------------------------------------------------------
 // collimator - may be fully open
-// uncollimated version
+// version with no collimation: hole D=5.0mm
 //-----------------------------------------------------------------------------
 string         coll.material      = "G4_Al";
+double         coll.rIn           = 2.5;      // 0.25;
 double         coll.rOut          = 3.0;
-// double         coll.rIn           = 1.2;
-// double         coll.halfLength    = 1.0;
-double         coll.rIn           = 2.99;
-double         coll.halfLength    = 0.01;
+double         coll.halfLength    = 1.0;
 int            coll.copyNumber    = 104;     // non-0 for tracking purposes
 //-----------------------------------------------------------------------------
 // "virtual detector" at Z=0: a very thin (1 um) volume 

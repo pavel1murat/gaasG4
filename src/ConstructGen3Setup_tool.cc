@@ -309,7 +309,7 @@ namespace mu2e {
 			     doSurfaceCheck
 			     ));
 //-----------------------------------------------------------------------------
-// photodiode #1
+// photodiode #1-#6 positioned in Y in 120 um from the lower edge
 //-----------------------------------------------------------------------------
     vector<double> pd1_params;
     Config.getVectorDouble("pd1.halfLengths",pd1_params);

@@ -4,7 +4,6 @@
 // first example: 
 //
 // dg = new DrawGen3Setup("gen3_setup.gdml")
-// dg->HideBuilding(1)
 // dg->gm->GetVolume("HallAir")->Draw("ogl")
 //
 // comment: TGeoManager::Import chokes on filenames like "~/mu2e.gdml") 

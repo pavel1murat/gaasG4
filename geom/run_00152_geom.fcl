@@ -20,9 +20,10 @@ double world.outerLayerThickness = 0.001;         // the world "outer layer" to 
 //-----------------------------------------------------------------------------
 // describe the source holder - need to model absorption
 // have Mu2e materials - use polyethylene?
+// redefine the source position
 //-----------------------------------------------------------------------------
-vector<double> particleGun.point = { 0. , 0. ,  3. };
-double         source.z          = particleGun.point.z ;  // mm - will tha work ?
+vector<double> particleGun.point = { -0.100 , 2.330 , 3. };
+double         source.z          = particleGun.point.z ;  // mm - will that work ?
 //-----------------------------------------------------------------------------
 // Aluminum rod inside the holder, material doesn't really matter
 //-----------------------------------------------------------------------------

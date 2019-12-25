@@ -1,0 +1,41 @@
+///////////////////////////////////////////////////////////////////////////////
+// height of the source has to be consistent with the setup geometry
+///////////////////////////////////////////////////////////////////////////////
+#include "gaasG4/geom/source_geometry_nocoll_D2.txt"
+
+bool particleGun.do      = true;
+
+// Limits on cos(polar angle) for the D = 0.5 mm, H= 2mm collimator 
+double particleGun.czmin =    -1.;
+double particleGun.czmax =  -0.95.;    //  1.;
+
+// Limits on phi angle:
+double particleGun.phimin =   0.0;
+double particleGun.phimax = 360.0;
+
+// Time limits in ns, relative to protons on target.
+double particleGun.tmin  =  0.0;
+double particleGun.tmax  =  0.0;
+
+// Limits on momentum: (MeV) - alpha-particle with Ekin=5.5 MeV 
+double particleGun.pmin = 202.;
+double particleGun.pmax = 202.;
+
+// Particle Id, see e.g. GlobalConstantsService/data/mass_width_2008.mc
+// pi  211
+// p  2212
+// alpha: 1000020040 (GlobalConstantServices/data/particle.tbl)
+
+int    particleGun.id   = 1000020040; // 2212;
+double particleGun.mean =  -1;        // mean number of particles, -n : exactly n
+
+// Control of histograms.
+bool particleGun.doHistograms = true;
+
+bool particleGun.verbose = false;
+
+
+// This tells emacs to view this file in c++ mode.
+// Local Variables:
+// mode:c++
+// End:
