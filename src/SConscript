@@ -17,7 +17,7 @@ helper=mu2e_helper(env)
 #    the granular lib string.
 #
 
-g4inc    = os.environ['G4INCLUDE'] + '/Geant4'
+g4inc    = os.environ['G4INCLUDE']
 g4libdir = os.environ['G4LIB']
 g4_version = os.environ['GEANT4_VERSION']
 g4_version=g4_version.replace('_','')
@@ -29,8 +29,9 @@ else:
 # print "GEANT4_VERSION ",  g4_version
 
 # Compiler switches needed by the default G4 build.
-G4CPPFLAGS = [ '-DG4OPTIMISE',           '-DG4VERBOSE',
-               '-DG4_STORE_TRAJECTORY',  '-DG4UI_USE_TCSH ',
+G4CPPFLAGS = [ '-DG4OPTIMISE',           
+##               '-DG4VERBOSE',
+##               '-DG4_STORE_TRAJECTORY',  '-DG4UI_USE_TCSH ',
                '-DG4UI_USE',             '-DG4VIS_USE_DAWNFILE',
                '-DG4VIS_USE_HEPREPFILE', '-DG4VIS_USE_RAYTRACER',
                '-DG4VIS_USE_VRMLFILE',   '-DG4VIS_USE_ASCIITREE',
@@ -40,9 +41,9 @@ G4CPPFLAGS = [ '-DG4OPTIMISE',           '-DG4VERBOSE',
 
 rootlibs  = env['ROOTLIBS']
 
-g4mt = env['G4MT'];
-if g4mt == 'on':
-    G4CPPFLAGS.append('-DG4MULTITHREADED')
+## g4mt = env['G4MT'];
+## if g4mt == 'on':
+##    G4CPPFLAGS.append('-DG4MULTITHREADED')
 
 # Compiler switches if we want to build G4 with OPENGL and possibly Qt
 
@@ -235,7 +236,7 @@ mainlib = helper.make_mainlib ( [
         'boost_system',
     ],
                                 [  G4CPPFLAGS, G4GS_CPPFLAGS ],
-                                [ '-L'+g4libdir, '-I'+g4inc ]
+                                [ '-L'+g4libdir, '-I'+g4inc , '-I'+os.environ['MUSE_WORK_DIR']+'/include']
                                 )
 
 helper.make_plugins( [
@@ -274,7 +275,7 @@ helper.make_plugins( [
     ],
                      [],
                      [ G4CPPFLAGS, G4GS_CPPFLAGS ],
-                     [ '-L'+g4libdir, '-I'+g4inc ]
+                     [ '-L'+g4libdir, '-I'+g4inc, '-I'+os.environ['MUSE_WORK_DIR']+'/include']
                      )
 
 # This tells emacs to view this file in python mode.

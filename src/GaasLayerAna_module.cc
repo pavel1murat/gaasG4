@@ -27,13 +27,13 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 // Mu2e includes.
-#include "GeometryService/inc/VirtualDetector.hh"
+#include "Offline/GeometryService/inc/VirtualDetector.hh"
 
-#include "MCDataProducts/inc/PtrStepPointMCVectorCollection.hh"
-#include "MCDataProducts/inc/GenParticleCollection.hh"
-#include "MCDataProducts/inc/SimParticleCollection.hh"
-#include "MCDataProducts/inc/StepPointMCCollection.hh"
-#include "DataProducts/inc/VirtualDetectorId.hh"
+// #include "Offline/MCDataProducts/inc/PtrStepPointMCVectorCollection.hh"
+#include "Offline/MCDataProducts/inc/GenParticle.hh"
+#include "Offline/MCDataProducts/inc/SimParticle.hh"
+#include "Offline/MCDataProducts/inc/StepPointMC.hh"
+#include "Offline/DataProducts/inc/VirtualDetectorId.hh"
 
 #include "Stntuple/mod/StntupleModule.hh"
 
