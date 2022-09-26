@@ -16,7 +16,7 @@ stepperout: {
 }
 END_PROLOG
 
-#include "Stntuple/fcl/stntuple_gaas.fcl"
+#include "gaasG4/fcl/stntuple_gaas.fcl"
 
 
 process_name : g4studyGaasLayer   # Give this job a name.
