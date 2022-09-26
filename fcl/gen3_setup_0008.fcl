@@ -4,11 +4,9 @@
 # Original author K.L. Genser
 #
 
-#include "fcl/minimalMessageService.fcl"
-#include "fcl/standardProducers.fcl"
-#include "fcl/standardServices.fcl"
-
-#include "Stntuple/fcl/prolog.fcl"
+#include "Offline/fcl/minimalMessageService.fcl"
+#include "Offline/fcl/standardProducers.fcl"
+#include "Offline/fcl/standardServices.fcl"
 
 BEGIN_PROLOG
 stepperout: {
@@ -17,6 +15,9 @@ stepperout: {
     write: "stepper"
 }
 END_PROLOG
+
+
+#include "Stntuple/fcl/stntuple_gaas.fcl"
 
 process_name : Gen3Setup   # Give this job a name.
 
@@ -34,13 +35,16 @@ services : {
     TFileService          : { fileName : "gen3_setup_0008.hist" }
     RandomNumberGenerator : { }
 
-    GeometryService        : { inputFile      : "gaasG4/geom/gen3_setup_0008.txt"
+    GeometryService        : { 
+	bFieldFile         : "Offline/Mu2eG4/geom/bfgeom_v01.txt"
+	inputFile          : "gaasG4/geom/gen3_setup_0008.txt"
 	simulatedDetector  : { tool_type      : "ConstructGen3Setup"}
     }
 
-    ConditionsService      : { conditionsfile : "Mu2eG4/test/conditions_01.txt"      }
-    GlobalConstantsService : { inputFile      : "Mu2eG4/test/globalConstants_01.txt" }
-    G4Helper               : { }
+    ConditionsService      : { conditionsfile : "Offline/ConditionsService/data/conditions_01.txt"      }
+    GlobalConstantsService : { inputFile      : "Offline/GlobalConstantsService/data/globalConstants_01.txt" }
+
+    Mu2eG4Helper           : { }
 
     SeedService            : { @table::automaticSeeds
 	# Initialze seeding of random engines: 
@@ -68,7 +72,7 @@ physics : {
 	    # Mu2eG4CommonCut: { type: kineticEnergy cut: 1000000. }
 
 	    physics : { @table::g4run.physics
-		physicsListName : "ShieldingM_MU2ER1"
+		physicsListName : "QGSP_BERT"
 		# bfieldMaxStep   : 500000.            # not implemented (no field)
 	    }
 
@@ -91,7 +95,6 @@ physics : {
 		# trackingVerbosityLevel : 1
 		steppingVerbosityLevel : 1
 		
-		fillDiagnosticHistograms : true
 		writeGDML                : true
 		GDMLFileName             : "gen3_setup_0008.gdml"
 
@@ -110,7 +113,7 @@ physics : {
 
     filters : {
 	GaasLayerAna : {
-	    @table::StntupleModuleFclDefaults                   # defaults of the base class
+	    @table::StntupleTModuleFclDefaults                   # defaults of the base class
 	    module_type        : GaasLayerAna
 	    g4ModuleLabel      : "g4run"
 	    debugBits          : {}
