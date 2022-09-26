@@ -4,11 +4,9 @@
 # Original author K.L. Genser
 #
 
-#include "fcl/minimalMessageService.fcl"
-#include "fcl/standardProducers.fcl"
-#include "fcl/standardServices.fcl"
-
-#include "Stntuple/fcl/prolog.fcl"
+#include "Offline/fcl/minimalMessageService.fcl"
+#include "Offline/fcl/standardProducers.fcl"
+#include "Offline/fcl/standardServices.fcl"
 
 BEGIN_PROLOG
 stepperout: {
@@ -17,6 +15,9 @@ stepperout: {
     write: "stepper"
 }
 END_PROLOG
+
+#include "Stntuple/fcl/stntuple_gaas.fcl"
+
 
 process_name : g4studyGaasLayer   # Give this job a name.
 
@@ -31,13 +32,15 @@ services : {
   TFileService          : { fileName : "gaas_layer.hist" }
   RandomNumberGenerator : { }
 
-  GeometryService        : { inputFile      : "gaasG4/geom/gaas_layer.txt"
+  GeometryService        : { 
+      bFieldFile         : "Offline/Mu2eG4/geom/bfgeom_v01.txt"
+      inputFile          : "gaasG4/geom/gaas_layer.txt"
       simulatedDetector  : { tool_type : "ConstructGaasLayer"}
   }
 
-  ConditionsService      : { conditionsfile : "Mu2eG4/test/conditions_01.txt"      }
-  GlobalConstantsService : { inputFile      : "Mu2eG4/test/globalConstants_01.txt" }
-  G4Helper               : { }
+  ConditionsService      : { conditionsfile : "Offline/ConditionsService/data/conditions_01.txt"      }
+  GlobalConstantsService : { inputFile      : "Offline/GlobalConstantsService/data/globalConstants_01.txt" }
+  Mu2eG4Helper           : { }
   SeedService            : @local::automaticSeeds
 }
 
@@ -58,7 +61,7 @@ physics : {
 	    # Mu2eG4CommonCut: { type: kineticEnergy cut: 1000000. }
 
 	    physics : { @table::g4run.physics
-		physicsListName : "ShieldingM_MU2ER1"
+		physicsListName : "QGSP_BERT"
 		# bfieldMaxStep   : 500000.            # not implemented (no field)
 	    }
 
@@ -69,7 +72,7 @@ physics : {
 		perVolumeMinDistance      : {}
 	    }
 	    
-	    physics.producers.g4run.SDConfig: {
+	    SDConfig: {
 		enableSD         : []                      # not implemented
 		TimeVD           : { times : [0.01] }
 	    }
@@ -79,7 +82,7 @@ physics : {
 		# printElements     : true
 		# worldVerbosityLevel : 2
 
-		fillDiagnosticHistograms : true
+		# fillDiagnosticHistograms : true
 		writeGDML                : false # true
 		GDMLFileName             : "gaas_layer.gdml"
 
@@ -96,19 +99,18 @@ physics : {
 	randomsaver          : @local::randomsaver
     }
 
-    filters : {
-	GaasLayerAna : {
-	    @table::StntupleModuleFclDefaults                   # defaults of the base class
+    analyzers : {
+	GaasLayerAna : { @table::StntupleTModuleFclDefaults              # defaults of the base class
 	    module_type        : GaasLayerAna
 	    g4ModuleLabel      : "g4run"
 	    debugBits          : {}
 	}
     } 
 
-    p1 : [generate , g4run , GaasLayerAna, randomsaver]
+    p1 : [generate , g4run , randomsaver]
     #  e1 : [dumper, outfile]
     #  e1 : [outfile]
-    e1 : []
+    e1 : [ GaasLayerAna ]
 
     trigger_paths  : [p1]
     end_paths      : [e1]
