@@ -58,6 +58,10 @@ def run(fn)
   new_event = 0;
   e_gaas = 0;
   e_pd   = 0;
+
+
+  puts "event/I:egaas/F:epd/F"
+
   f.each_line { |line|
     # if ($verbose) then puts "line=#{line}" end
     words = line.split();
@@ -65,7 +69,7 @@ def run(fn)
       # new event
       if (new_event == 1) then
         if (e_gaas > 0) or (e_pd > 0) then
-          puts "event_number, e_gaas, e_pd = #{event_number} #{e_gaas} #{e_pd}"
+          puts "#{event_number} #{e_gaas} #{e_pd}"
         end
       end
       e_gaas       = 0;
@@ -87,7 +91,7 @@ def run(fn)
   }
   
   if (e_gaas > 0) or (e_pd > 0) then
-    puts "event_number, e_gaas, e_pd = #{event_number} #{e_gaas} #{e_pd}"
+    puts "#{event_number} #{e_gaas} #{e_pd}"
   end
   f.close
 end
