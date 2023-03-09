@@ -345,22 +345,22 @@ void DrawGen3Setup::SetDefaultColorTransp() {
   SetRecursiveColorTransp(pd0,col,40);
 
   TGeoVolume* pd1 = gm->GetVolume("InGaAsPD1");
-  SetRecursiveColorTransp(pd1,col,40);
+  if (pd1) SetRecursiveColorTransp(pd1,col,40);
 
   TGeoVolume* pd2 = gm->GetVolume("InGaAsPD2");
-  SetRecursiveColorTransp(pd2,col,40);
+  if (pd2) SetRecursiveColorTransp(pd2,col,40);
 
   TGeoVolume* pd3 = gm->GetVolume("InGaAsPD3");
-  SetRecursiveColorTransp(pd3,col,40);
+  if (pd3) SetRecursiveColorTransp(pd3,col,40);
 
   TGeoVolume* pd4 = gm->GetVolume("InGaAsPD4");
-  SetRecursiveColorTransp(pd4,col,40);
+  if (pd4) SetRecursiveColorTransp(pd4,col,40);
 
   TGeoVolume* pd5 = gm->GetVolume("InGaAsPD5");
-  SetRecursiveColorTransp(pd5,col,40);
+  if (pd5) SetRecursiveColorTransp(pd5,col,40);
 
   TGeoVolume* pd6 = gm->GetVolume("InGaAsPD6");
-  SetRecursiveColorTransp(pd6,col,40);
+  if (pd6) SetRecursiveColorTransp(pd6,col,40);
 }
 
 //-----------------------------------------------------------------------------

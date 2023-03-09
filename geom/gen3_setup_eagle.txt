@@ -28,7 +28,7 @@ int            sensor.copyNumber    = 2;                 // non-0 for tracking p
 //-----------------------------------------------------------------------------
 // photodiodes
 //-----------------------------------------------------------------------------
-int            nPhotodiodes = 7;
+int            nPhotodiodes = 1;
 bool           pd0.visible  = true;
 bool           pd0.solid    = false;
 

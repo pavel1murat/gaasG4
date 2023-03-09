@@ -37,27 +37,27 @@ using namespace std;
 
 namespace mu2e {
 
-  class ConstructGen3Setup: public InitEnvToolBase {
+  class ConstructGen4Setup: public InitEnvToolBase {
   public:
-    ConstructGen3Setup (const fhicl::ParameterSet& PSet);
-    ~ConstructGen3Setup();
+    ConstructGen4Setup (const fhicl::ParameterSet& PSet);
+    ~ConstructGen4Setup();
 
     int construct(VolumeInfo const& ParentVInfo, SimpleConfig const& Config);
   };
 
 
 //-----------------------------------------------------------------------------
-  ConstructGen3Setup::ConstructGen3Setup(const fhicl::ParameterSet& PSet) {
-    _name = "Gen3Setup";
+  ConstructGen4Setup::ConstructGen4Setup(const fhicl::ParameterSet& PSet) {
+    _name = "Gen4Setup";
   }
 
 //-----------------------------------------------------------------------------
-  ConstructGen3Setup::~ConstructGen3Setup() {
+  ConstructGen4Setup::~ConstructGen4Setup() {
   }
 
 //-----------------------------------------------------------------------------
 // geometry information passed through the config file
-  int ConstructGen3Setup::construct(VolumeInfo const& parentVInfo, SimpleConfig const& Config) {
+  int ConstructGen4Setup::construct(VolumeInfo const& parentVInfo, SimpleConfig const& Config) {
     // 2016-11-06 P.Murat: if needed, add GaAs as material
 
     G4NistManager* nist = G4NistManager::Instance();
@@ -257,17 +257,17 @@ namespace mu2e {
 //-----------------------------------------------------------------------------
 // construct and position sensor
 //-----------------------------------------------------------------------------
-//    int    n_photodiodes        = Config.getBool("nPhotodiodes"  ,-1  );
+    int    n_photodiodes        = Config.getInt ("nPhotodiodes"  , 0  );
     G4bool sensorVisible        = Config.getBool("sensor.visible",true);
     G4bool sensorSolid          = Config.getBool("sensor.solid"  ,true);
 
-    vector<double> sensorParams;
-    Config.getVectorDouble( "sensor.halfLengths", sensorParams);
+    vector<double> sensorHalfLengths;
+    Config.getVectorDouble( "sensor.halfLengths", sensorHalfLengths);
 
     const G4ThreeVector sensorCenterInWorld(Config.getHep3Vector("sensor.centerInWorld"));
 
     VolumeInfo box(nestBox( "GaasSensor",
-			    sensorParams,
+			    sensorHalfLengths,
 			    gaas,
 			    0,                               // no rotation
 			    sensorCenterInWorld,
@@ -282,177 +282,46 @@ namespace mu2e {
 			    ));
 //-----------------------------------------------------------------------------
 // construct and position the photodiodes - all 7 of them
+// PD offset - offset of its left bottom corner wrt the left bottom corner of the sensor
 //-----------------------------------------------------------------------------
-    G4bool pdVisible        = Config.getBool("pd0.visible",true);
-    G4bool pdSolid          = Config.getBool("pd0.solid"  ,true);
+    for (int i=0; i<n_photodiodes; i++) {
 
-    vector<double> pd0_params;
-    Config.getVectorDouble("pd0.halfLengths",pd0_params);
+      G4bool pdVisible        = Config.getBool(Form("pd%i.visible",i),true);
+      G4bool pdSolid          = Config.getBool(Form("pd%i.solid"  ,i),true);
 
-    double pd_half_thickness = pd0_params[2];
-    double pd_z              = sensorCenterInWorld.z()+sensorParams[2]+pd_half_thickness;
+      vector<double> pd_half_length;
+      Config.getVectorDouble(Form("pd%i.halfLength",i),pd_half_length);
 
-    G4ThreeVector pd0_pos;
-    pd0_pos.set(sensorCenterInWorld.x()-sensorParams[0]+0.285+pd0_params[0],
-		sensorCenterInWorld.y(),pd_z);
+      vector<double> pd_offset;
+      Config.getVectorDouble(Form("pd%i.offset",i),pd_offset);
 
-    VolumeInfo pd0 (nestBox( "InGaAsPD0",
-			     pd0_params,
-			     gaas,
-			     0,                                 // no rotation
-			     pd0_pos,
-			     parentVInfo,
-			     Config.getInt("pd0.copyNumber"), // for volume tracking purposes
-			     pdVisible,
-			     G4Color::Red(),
-			     pdSolid,
-			     forceAuxEdgeVisible,
-			     placePV,
-			     doSurfaceCheck
-			     ));
-//-----------------------------------------------------------------------------
-// photodiode #1-#6 positioned in Y in 120 um from the lower edge
-//-----------------------------------------------------------------------------
-    vector<double> pd1_params;
-    Config.getVectorDouble("pd1.halfLengths",pd1_params);
+      double xc = sensorCenterInWorld.x()-sensorHalfLengths[0]+pd_offset[0]+pd_half_length[0];
+      double yc = sensorCenterInWorld.y()-sensorHalfLengths[1]+pd_offset[1]+pd_half_length[1];
+      double zc = sensorCenterInWorld.z()-sensorHalfLengths[2]+pd_offset[2]+pd_half_length[2];
 
-    double pd16_ymin = sensorCenterInWorld.y()-sensorParams[1]+0.120;
+      int pd_copy_number = Config.getInt(Form("pd%i.copyNumber",i));
 
-    G4ThreeVector pd1_pos;
-    pd1_pos.set(pd0_pos[0]+pd0_params[0]+0.070+pd1_params[0],pd16_ymin+pd1_params[1],pd_z);
+      G4ThreeVector pd_pos(xc,yc,zc);
 
-    VolumeInfo pd1 (nestBox( "InGaAsPD1",
-			     pd1_params,
-			     gaas,
-			     0,                                 // no rotation
-			     pd1_pos,
-			     parentVInfo,
-			     Config.getInt("pd1.copyNumber"), // assign copy nuber for volume tracking purposes
-			     pdVisible,
-			     G4Color::Red(),
-			     pdSolid,
-			     forceAuxEdgeVisible,
-			     placePV,
-			     doSurfaceCheck
-			     ));
-//-----------------------------------------------------------------------------
-// photodiode #2
-//-----------------------------------------------------------------------------
-    vector<double> pd2_params;
-    Config.getVectorDouble("pd2.halfLengths",pd2_params);
+      VolumeInfo pd0 (nestBox( Form("InGaAsPD%i",i),
+                               pd_half_length,
+                               gaas,
+                               0,                     // 0: no rotation
+                               pd_pos,
+                               parentVInfo,
+                               pd_copy_number,        // for volume tracking purposes
+                               pdVisible,
+                               G4Color::Red(),
+                               pdSolid,
+                               forceAuxEdgeVisible,
+                               placePV,
+                               doSurfaceCheck
+                               ));
+    }
 
-    G4ThreeVector pd2_pos;
-    pd2_pos.set(pd1_pos[0]+pd1_params[0]+0.10+pd2_params[0],pd16_ymin+pd2_params[1],pd_z);
-
-    VolumeInfo pd2 (nestBox( "InGaAsPD2",
-			     pd2_params,
-			     gaas,
-			     0,                                 // no rotation
-			     pd2_pos,
-			     parentVInfo,
-			     Config.getInt("pd2.copyNumber"), // for tracking purposes
-			     pdVisible,
-			     G4Color::Red(),
-			     pdSolid,
-			     forceAuxEdgeVisible,
-			     placePV,
-			     doSurfaceCheck
-			     ));
-//-----------------------------------------------------------------------------
-// photodiode #3
-//-----------------------------------------------------------------------------
-    vector<double> pd3_params;
-    Config.getVectorDouble("pd3.halfLengths",pd3_params);
-
-    G4ThreeVector pd3_pos;
-    pd3_pos.set(pd2_pos[0]+pd2_params[0]+0.10+pd3_params[0],pd16_ymin+pd3_params[1],pd_z);
-
-    VolumeInfo pd3 (nestBox( "InGaAsPD3",
-			     pd3_params,
-			     gaas,
-			     0,                                 // no rotation
-			     pd3_pos,
-			     parentVInfo,
-			     Config.getInt("pd3.copyNumber"), // assign copy nuber for volume tracking purposes
-			     pdVisible,
-			     G4Color::Red(),
-			     pdSolid,
-			     forceAuxEdgeVisible,
-			     placePV,
-			     doSurfaceCheck
-			     ));
-//-----------------------------------------------------------------------------
-// photodiode #4
-//-----------------------------------------------------------------------------
-    vector<double> pd4_params;
-    Config.getVectorDouble("pd4.halfLengths",pd4_params);
-
-    G4ThreeVector pd4_pos;
-    pd4_pos.set(pd3_pos[0]+pd3_params[0]+0.10+pd4_params[0],pd16_ymin+pd4_params[1],pd_z);
-
-    VolumeInfo pd4 (nestBox( "InGaAsPD4",
-			     pd4_params,
-			     gaas,
-			     0,                                 // no rotation
-			     pd4_pos,
-			     parentVInfo,
-			     Config.getInt("pd4.copyNumber"), // assign copy number for volume tracking purposes
-			     pdVisible,
-			     G4Color::Red(),
-			     pdSolid,
-			     forceAuxEdgeVisible,
-			     placePV,
-			     doSurfaceCheck
-			     ));
-//-----------------------------------------------------------------------------
-// photodiode #5
-//-----------------------------------------------------------------------------
-    vector<double> pd5_params;
-    Config.getVectorDouble("pd5.halfLengths",pd5_params);
-
-    G4ThreeVector pd5_pos;
-    pd5_pos.set(pd4_pos[0]+pd4_params[0]+0.100+pd5_params[0],pd16_ymin+pd5_params[1],pd_z);
-
-    VolumeInfo pd5 (nestBox( "InGaAsPD5",
-			     pd5_params,
-			     gaas,
-			     0,                                 // no rotation
-			     pd5_pos,
-			     parentVInfo,
-			     Config.getInt("pd5.copyNumber"), // for tracking purposes
-			     pdVisible,
-			     G4Color::Red(),
-			     pdSolid,
-			     forceAuxEdgeVisible,
-			     placePV,
-			     doSurfaceCheck
-			     ));
-//-----------------------------------------------------------------------------
-// photodiode #6
-//-----------------------------------------------------------------------------
-    vector<double> pd6_params;
-    Config.getVectorDouble("pd6.halfLengths",pd6_params);
-
-    G4ThreeVector pd6_pos;
-    pd6_pos.set(pd5_pos[0]+pd5_params[0]+0.100+pd6_params[0],pd16_ymin+pd6_params[1],pd_z);
-
-    VolumeInfo pd6 (nestBox( "InGaAsPD6",
-			     pd6_params,
-			     gaas,
-			     0,                                 // no rotation
-			     pd6_pos,
-			     parentVInfo,
-			     Config.getInt("pd6.copyNumber"), // assign copy number for volume tracking purposes
-			     pdVisible,
-			     G4Color::Red(),
-			     pdSolid,
-			     forceAuxEdgeVisible,
-			     placePV,
-			     doSurfaceCheck
-			     ));
     return 0;
   }
 
 }
 
-DEFINE_ART_CLASS_TOOL(mu2e::ConstructGen3Setup)
+DEFINE_ART_CLASS_TOOL(mu2e::ConstructGen4Setup)

@@ -1,0 +1,15 @@
+#
+
+* s01: Am241 alpha  5.5 MeV alpha particles
+* s02: Am241 gamma  60  keV photons
+* s03: Co57  gamma  122 keV photons
+
+
+* g001: old sensor with 7 PDs
+
+* g002: a 500x500 sensor  with the PD fully covering the top
+
+
+* datasets : 
+** det01s01 : 1 layer PD covers all of it
+
