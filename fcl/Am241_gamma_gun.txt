@@ -1,0 +1,46 @@
+//
+// "Am241 source" photons : 59.5 MeV
+//
+//-----------------------------------------------------------------------------
+#include "gaasG4/geom/source_geometry.txt"
+
+// enable process
+bool particleGun.do = true;
+
+// Limits on cos(polar angle):
+double particleGun.czmin =  -1.;
+double particleGun.czmax =  -1.;
+
+// Limits on phi angle:
+double particleGun.phimin = 0.0;
+double particleGun.phimax = 0.0;
+
+// Time limits in ns, relative to protons on target.
+double particleGun.tmin  =  0.0;
+double particleGun.tmax  =  0.0;
+
+// Am-241 photons - 59.5 keV 
+double particleGun.pmin = 0.0595   ;
+double particleGun.pmax = 0.059501 ;
+
+// Particle Id, see e.g. GlobalConstantsService/data/mass_width_2008.mc
+// pi     : 211
+// p      : 2212
+// alpha  : 1000020040 (GlobalConstantServices/data/particle.tbl)
+// photon : 22
+
+int particleGun.id = 22; // 2212;
+
+// Mean particle number
+double particleGun.mean =  -1; // -n exactly n
+
+// Control of histograms.
+bool particleGun.doHistograms = true;
+
+bool particleGun.verbose = false;
+
+// This tells emacs to view this file in c++ mode.
+// Local Variables:
+// mode:c++
+// End:
+

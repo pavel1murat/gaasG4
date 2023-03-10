@@ -1,0 +1,25 @@
+# -*- mode: tcl -*- 
+#------------------------------------------------------------------------------
+BEGIN_PROLOG
+#------------------------------------------------------------------------------
+# this is needed for Mu2eG4/G4 to write out StepPointMcs
+#------------------------------------------------------------------------------
+stepperout: {
+    type    : constant
+    value   : false
+    write   : "stepper"            ## tag of the StepPointMC collection
+}
+
+gaasG4 : {      
+    producers : {} 
+    filters   : {
+        SpmcFilter : { module_type : SpmcFilter
+            spmcCollTag : "g4run:stepper"
+            minEDep     : 1.e-10    # MeV, just something positive
+        }
+    }
+    analyzers   : {
+    }
+}
+END_PROLOG
+

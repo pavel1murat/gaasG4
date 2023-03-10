@@ -1,0 +1,103 @@
+// -*- mode:c++ -*-
+///////////////////////////////////////////////////////////////////////////////
+// 1 large PD, fully covering the scintillator, shielded by the scintillator
+///////////////////////////////////////////////////////////////////////////////
+#include "gaasG4/geom/source_geometry.txt"
+
+string detector.name        = "gen3_setup"; // Change the name.
+
+bool g4.forceAuxEdgeVisible = true;         // make the volume mesh visible
+bool g4.doSurfaceCheck      = false;        // do not check for overlaps
+
+
+string world.materialName        = "G4_Galactic"; // the "World Box": a very "thin" vacuum
+bool   world.boxVisible          = true;          // make the world boundaries visible
+bool   world.boxSolid            = false;         // make the volume transparent
+double world.halfLength          = 50.0;          // mm 
+double world.outerLayerThickness = 0.001;         // the world "outer layer" to force a step point
+//-----------------------------------------------------------------------------
+// describe the source holder - need to model absorption
+// have Mu2e materials - use polyethylene?
+//-----------------------------------------------------------------------------
+double     source.z               = 4. ;  // mm
+//-----------------------------------------------------------------------------
+// Aluminum rod inside the holder, material doesn't really matter
+//-----------------------------------------------------------------------------
+bool           arod.visible       = true;
+bool           arod.solid         = false;
+
+string         arod.material      = "G4_Al";
+double         arod.rIn           =   0;
+double         arod.rOut          = 3.0;
+double         arod.halfLength    =   4;
+double         arod.phiRotZ       =  0.;
+double         arod.X0            = 0.;
+double         arod.Y0            = 0.;
+int            arod.copyNumber    = 101; // non-0 for tracking purposes
+//-----------------------------------------------------------------------------
+// assume the source itself to be infinitely thin 
+// estimated thickness of a 1 microCurie Am241 source is about 5nm
+// coating layer on top of Am241 source
+// height and half-thickness of the coating need to be modified together:
+// zWorld+dz/2 = 0.5
+//-----------------------------------------------------------------------------
+string         coat.material      = "G4_Au";
+double         coat.rIn           = 0;
+double         coat.rOut          = 1.2;
+double         coat.halfThickness = 0.0010;
+double         coat.phiRotZ       =  0.;
+int            coat.copyNumber    = 102;         // non-0 for tracking purposes
+//-----------------------------------------------------------------------------
+// walls with H=0.5 mm deep hole, source is slightly inside
+//-----------------------------------------------------------------------------
+string         wall.material      = "G4_Al";
+double         wall.rIn           = 1.2;
+double         wall.rOut          = 3.0;
+double         wall.halfLength    = 0.25;
+int            wall.copyNumber    = 103;         // non-0 for tracking purposes
+//-----------------------------------------------------------------------------
+// collimator - may be fully open
+// uncollimated version
+//-----------------------------------------------------------------------------
+string         coll.material      = "G4_Al";
+double         coll.rOut          = 3.0;
+// double         coll.rIn           = 1.2;
+// double         coll.halfLength    = 1.0;
+double         coll.rIn           = 2.99;
+double         coll.halfLength    = 0.01;
+int            coll.copyNumber    = 104;     // non-0 for tracking purposes
+//-----------------------------------------------------------------------------
+// "virtual detector" at Z=0: a very thin (1 um) volume 
+// goes down to 5 um above zero, no overlap with
+//-----------------------------------------------------------------------------
+string         vd1.material      = "G4_Galactic";
+double         vd1.rIn           = 0;
+double         vd1.rOut          = 4;
+double         vd1.halfLength    = 0.0005;           //
+double         vd1.phiRotZ       = 0.;
+vector<double> vd1.centerInWorld = {0., 0., 0.010};  // 10 microns above zero 
+int            vd1.copyNumber    = 200;              // non-0 for tracking purposes
+//-----------------------------------------------------------------------------
+// QD/GaAs sensor 
+//-----------------------------------------------------------------------------
+bool           sensor.visible = true;
+bool           sensor.solid   = false;
+
+string         sensor.material      = "GaAs";
+// vector<double> sensor.halfLengths   = {0.25, 0.25,  0.010 }; // 20 um thick GaAs layer, mm
+vector<double> sensor.halfLengths   = {0.5. , 0.5 ,  0.010 }; // 20 um thick GaAs layer, mm
+vector<double> sensor.centerInWorld = {0.   , 0.  , -0.010 }; // sensor position
+int            sensor.copyNumber    = 2000;                  // non-0 for tracking purposes
+//-----------------------------------------------------------------------------
+// 1 large PD
+//-----------------------------------------------------------------------------
+int            nPhotodiodes = 1;
+
+bool           pd0.visible = true;
+bool           pd0.solid   = false;
+
+string         pd0.material      = "GaAs";
+int            pd0.copyNumber    = 1000;                            // for tracking purposes
+// vector<double> pd0.halfLength    = {0.250, 0.250,  0.00075};        // 1.5 um thick InGaAs layer, mm
+vector<double> pd0.halfLength    = { 0.5 ,  0.5 ,  0.00075};        // 1.5 um thick InGaAs layer, mm
+vector<double> pd0.offset        = { 0.  ,  0.  , -0.00075};        // wrt sensor, right under
