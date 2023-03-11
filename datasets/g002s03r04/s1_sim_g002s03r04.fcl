@@ -1,0 +1,59 @@
+# -*- mode:tcl -*-
+#------------------------------------------------------------------------------
+# use Gen4Setup - reco 'r04'
+#------------------------------------------------------------------------------
+#include "gaasG4/fcl/gaasG4.fcl"
+
+process_name : Gen4Setup                 ## Give this job a name.
+
+source : {
+  module_type : EmptyEvent
+  maxEvents   : 100
+}
+
+services : { @table::services }         ## from gaasG4/fcl/stntuple_gaas.fcl
+
+physics : {
+    producers : { @table::gaasG4.producers }
+    filters   : { @table::gaasG4.filters   }
+    analyzers : { @table::gaasG4.analyzers }
+
+    p1 : [ generate , g4run , SpmcFilter, randomsaver]
+    p2 : [ generate , g4run , SpmcFilter, randomsaver]
+
+    e1 : [ GaasLayerAna ]
+    e2 : [ GaasLayerAna, outfile ]
+    e3 : [ GaasLayerAna, dumper, outfile]
+
+    trigger_paths  : [ p1 ]
+    end_paths      : [ e2 ]
+}
+
+outputs:  {
+
+  outfile : {
+      module_type  :   RootOutput
+      fileName     :   "sim.gaas.g002s03r04.gaasqd.001000_00000000.art"
+      SelectEvents : [ p1 ]
+  }
+
+  dumper : {
+      module_type              : FileDumperOutput
+      wantProductFullClassName : true
+  }
+}
+#------------------------------------------------------------------------------
+# s03: Co-57 photons
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+# the sensor and the source: Co-57 photons
+#------------------------------------------------------------------------------
+services.GeometryService.inputFile   : "gaasG4/datasets/g002s03/geom_g002s03r04.txt"
+physics.producers.generate.inputfile : "gaasG4/fcl/Co57_gun.txt"
+
+physics.producers.g4run.debug.steppingVerbosityLevel : 1
+#------------------------------------------------------------------------------
+services.message.destinations.log.categories.ArtReport.reportEvery : 1000
+services.message.destinations.log.categories.ArtReport.limit       : 1000000
+#------------------------------------------------------------------------------
+services.TFileService.fileName : "sim.gaas.g002s03r04.gaasqd.001000_00000000.hist" 

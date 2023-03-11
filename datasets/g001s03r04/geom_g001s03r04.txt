@@ -7,6 +7,7 @@
 #include "gaasG4/geom/source_geometry.txt"
 
 string detector.name        = "gen3_setup"; // Change the name.
+double detector.max_g4_step = 1.e-3;        // 1 micron
 
 bool g4.forceAuxEdgeVisible = true;         // make the volume mesh visible
 bool g4.doSurfaceCheck      = false;        // do not check for overlaps
@@ -91,6 +92,7 @@ vector<double> sensor.centerInWorld = {0., 0.  , -0.010 }; // sensor position
 int            sensor.copyNumber    = 2000;                // non-0 for tracking purposes
 //-----------------------------------------------------------------------------
 // photodiodes - 7 of them, right on top of the sensor
+// PD offsets: offsets of the PD centers wrt the scintillator center
 //-----------------------------------------------------------------------------
 int            nPhotodiodes = 7;
 
@@ -98,36 +100,36 @@ bool           pd0.visible = true;
 bool           pd0.solid   = false;
 
 string         pd0.material      = "GaAs";
-vector<double> pd0.halfLengths   = {0.05, 0.25, 0.00075};         // 1.5 um thick InGaAs layer, mm
 int            pd0.copyNumber    = 1000;                          // for tracking purposes
-vector<double> pd0.offset        = {0.285, 0.1, 0.02};            // full sensor thickness
+vector<double> pd0.halfLength    = { 0.050,  0.250 ,  0.00075};   // 1.5 um thick InGaAs layer, mm
+vector<double> pd0.offset        = {-1.665, -0.000 , -0.01075};   // full sensor thickness
 
 string         pd1.material      = "GaAs";
 int            pd1.copyNumber    = 1001;                          // for tracking purposes
-vector<double> pd1.halfLengths   = {0.250, 0.050, 0.00075};       // 1.5 um thick InGaAs layer, mm
-vector<double> pd1.offset        = {0.455, 0.120, 0.02   };       // full sensor thickness
+vector<double> pd1.halfLength    = { 0.250,  0.050 ,  0.00075};   // 1.5 um thick InGaAs layer, mm
+vector<double> pd1.offset        = {-1.305, -0.180 , -0.01075};   // full sensor thickness
 
 string         pd2.material      = "GaAs";
 int            pd2.copyNumber    = 1002;                          // for tracking purposes
-vector<double> pd2.halfLengths   = {0.250, 0.025, 0.00075};       // 1.5 um thick InGaAs layer, mm
-vector<double> pd2.offset        = {1.055, 0.120, 0.02   };       // full sensor thickness
+vector<double> pd2.halfLength    = { 0.250,  0.025 ,  0.00075};   // 1.5 um thick InGaAs layer, mm
+vector<double> pd2.offset        = {-0.705, -0.205 , -0.01075};   // full sensor thickness
 
 string         pd3.material      = "GaAs";
-vector<double> pd3.halfLengths   = {0.25, 0.0175, 0.00075};     // 1.5 um thick InGaAs layer, mm
-int            pd3.copyNumber    = 1003;                        // for tracking purposes
-double         pd3.yOffset       = 0.120
+int            pd3.copyNumber    = 1003;                          // for tracking purposes
+vector<double> pd3.halfLength    = { 0.250,  0.0175,  0.00075};   // 1.5 um thick InGaAs layer, mm
+vector<double> pd3.offset        = {-0.105, -0.2125, -0.01075};   // full sensor thickness
 
 string         pd4.material      = "GaAs";
-vector<double> pd4.halfLengths   = {0.25, 0.05, 0.00075};     // 1.5 um thick InGaAs layer, mm
 int            pd4.copyNumber    = 1004;                          // for tracking purposes
-double         pd4.yOffset       = 0.120
+vector<double> pd4.halfLength    = { 0.250,  0.050 ,  0.00075};   // 1.5 um thick InGaAs layer, mm
+vector<double> pd4.offset        = { 0.495, -0.180 , -0.01075};   // full sensor thickness
 
 string         pd5.material      = "GaAs";
-vector<double> pd5.halfLengths   = {0.25, 0.025, 0.00075};     // 1.5 um thick InGaAs layer, mm
 int            pd5.copyNumber    = 1005;                          // for tracking purposes
-double         pd5.yOffset       = 0.120
+vector<double> pd5.halfLength    = { 0.250,  0.025 ,  0.00075};   // 1.5 um thick InGaAs layer, mm
+vector<double> pd5.offset        = { 1.095, -0.205 , -0.01075};   // full sensor thickness
 
 string         pd6.material      = "GaAs";
-vector<double> pd6.halfLengths   = {0.25, 0.0175, 0.00075};     // 1.5 um thick InGaAs layer, mm
-int            pd6.copyNumber    = 1006;                        // for tracking purposes
-double         pd6.yOffset       = 0.120
+int            pd6.copyNumber    = 1006;                          // for tracking purposes
+vector<double> pd6.halfLength    = { 0.250,  0.0175,  0.00075};   // 1.5 um thick InGaAs layer, mm
+vector<double> pd6.offset        = { 1.695, -0.2125, -0.01075};   // full sensor thickness

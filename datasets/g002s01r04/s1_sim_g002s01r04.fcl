@@ -1,42 +1,35 @@
 # -*- mode:tcl -*-
-# fcl config file to perform Geant4 studies using the Mu2e framework infrastructure and simple geometry
-#
+#------------------------------------------------------------------------------
+# use Gen4Setup - reco 'r04'
 #------------------------------------------------------------------------------
 #include "Offline/fcl/minimalMessageService.fcl"
 #include "Offline/fcl/standardProducers.fcl"
 #include "Offline/fcl/standardServices.fcl"
 
-BEGIN_PROLOG
-stepperout: {
-    type: constant
-    value: false
-    write: "stepper"
-}
-END_PROLOG
-
+#include "gaasG4/fcl/prolog.fcl"
 
 #include "gaasG4/fcl/stntuple_gaas.fcl"
 
-process_name : Gen3Setup   # Give this job a name.
+process_name : Gen4Setup   # Give this job a name.
 
 source : {
   module_type : EmptyEvent
-  maxEvents : 100
+  maxEvents   : 100
 }
 
-services : {
+services : { 
 
     message               : { @table::default_message
 	#destinations.log.noTimeStamps : true
     }
     
-    TFileService          : { fileName : "gen3_setup_0010.hist" }
+    TFileService          : { fileName : "sim.gaas.g002s01r04.gaasqd.001000_00000000.hist" }
     RandomNumberGenerator : { }
 
     GeometryService        : { 
 	bFieldFile         : "Offline/Mu2eG4/geom/bfgeom_v01.txt"
-	inputFile          : "gaasG4/geom/gen3_setup_0010.txt"
-	simulatedDetector  : { tool_type      : "ConstructGen3Setup"}
+	inputFile          : "gaasG4/datasets/g002s01/geom_g002s01r04.txt"
+	simulatedDetector  : { tool_type : "ConstructGen4Setup" }
     }
 
     ConditionsService      : { conditionsfile : "Offline/ConditionsService/data/conditions_01.txt"      }
@@ -50,13 +43,14 @@ services : {
 	maxUniqueEngines :  100
     }
 }
+services.scheduler.wantSummary   : true
 
 physics : {
     producers:  {
 	#    generate : @local::generate
 	generate: {
 	    module_type          : EventGenerator
-	    inputfile            : "gaasG4/fcl/Co57_gun.txt"
+	    inputfile            : "gaasG4/fcl/Am241_alpha_gun.txt"
 	    allowReplacement     : true
 	    messageOnReplacement : true
 	}
@@ -65,12 +59,13 @@ physics : {
 	    # The line below causes a StepPointMC being stored for each step;
 	    # comment it out to disable it
 	    
-	    Mu2eG4SteppingOnlyCut : @local::stepperout
+	    Mu2eG4SteppingOnlyCut : @local::stepperout      ## defined in gaasG4/fcl/prolog.fcl
 	    Mu2eG4StackingOnlyCut : @local::mu2eg4NoCut
 	    # Mu2eG4CommonCut: { type: kineticEnergy cut: 1000000. }
 
 	    physics : { @table::g4run.physics
 		physicsListName : "QGSP_BERT"
+                minRangeCut     : 0.001        ## claimed to be in mm
 		# bfieldMaxStep   : 500000.            # not implemented (no field)
 	    }
 
@@ -94,7 +89,7 @@ physics : {
 		steppingVerbosityLevel : 1
 		
 		# writeGDML                : true
-		GDMLFileName             : "gen3_setup_0010.gdml"
+		GDMLFileName             : "g002s01r04.gdml"
 
 		# checkFieldMap              : 0    # not implemented (no field)
 		# printPhysicsProcessSummary : true
@@ -109,31 +104,33 @@ physics : {
 	randomsaver          : @local::randomsaver
     }
 
-    analyzers : {
+    filters   : { @table::gaasG4.filters }
+
+    analyzers : { @table::gaasG4.analyzers 
 	GaasLayerAna : {@table::StntupleTModuleFclDefaults                   # defaults of the base class
 	    module_type        : GaasLayerAna
 	    g4ModuleLabel      : "g4run"
 	    debugBits          : {}
 	}
-    } 
+    }
 
-    p1 : [ generate , g4run , randomsaver]
-    p2 : [ generate , g4run , randomsaver]
+    p1 : [ generate , g4run , SpmcFilter, randomsaver]
+    p2 : [ generate , g4run , SpmcFilter, randomsaver]
 
     e1 : [ GaasLayerAna ]
     e2 : [ GaasLayerAna, outfile ]
     e3 : [ GaasLayerAna, dumper , outfile]
 
-    trigger_paths  : [p2]
-    # end_paths      : [e1]
-    end_paths      : [e2]
+    trigger_paths  : [ p1 ]
+    end_paths      : [ e2 ]
 }
 
 outputs:  {
 
   outfile : {
-    module_type   :   RootOutput
-      fileName    :   "gen3_setup_0010.art"
+      module_type  :   RootOutput
+      fileName     :   "sim.gaas.g002s01r04.gaasqd.001000_00000000.art"
+      SelectEvents : [ p1 ]
   }
 
   dumper : {
@@ -143,6 +140,8 @@ outputs:  {
 
 }
 # Limit the amount of "Begin processing the ... record" messages
-services.message.destinations.log.categories.ArtReport.reportEvery : 1
+services.message.destinations.log.categories.ArtReport.reportEvery : 100
 services.message.destinations.log.categories.ArtReport.limit       : 1000000
+#------------------------------------------------------------------------------
+services.TFileService.fileName : "gaasqd.g002s01r04.s1_ana.hist" 
 #------------------------------------------------------------------------------

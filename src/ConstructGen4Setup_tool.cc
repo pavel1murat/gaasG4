@@ -79,7 +79,7 @@ namespace mu2e {
       gaas->AddElement( as, 1);
     }
 
-    // polyethilene
+    // polyethylene
 
     G4Material* poly = G4Material::GetMaterial("Polyethylene",false);
     if (poly == NULL) {
@@ -243,7 +243,7 @@ namespace mu2e {
     VolumeInfo vd1VInfo(nestTubs( "Vd1",
                                    vd1Params,
                                    vd1Material,
-                                   0, // rotation,
+                                   0,                               // rotation,
                                    vd1CenterInWorld,
                                    parentVInfo,
                                    Config.getInt("vd1.copyNumber"), // non-0 for tracking purposes
@@ -266,24 +266,27 @@ namespace mu2e {
 
     const G4ThreeVector sensorCenterInWorld(Config.getHep3Vector("sensor.centerInWorld"));
 
-    VolumeInfo box(nestBox( "GaasSensor",
-			    sensorHalfLengths,
-			    gaas,
-			    0,                               // no rotation
-			    sensorCenterInWorld,
-			    parentVInfo,
-			    Config.getInt("sensor.copyNumber"), // for tracking purposes
-			    sensorVisible,
-			    orange,
-			    sensorSolid,
-			    forceAuxEdgeVisible,
-			    placePV,
-			    doSurfaceCheck
-			    ));
+    VolumeInfo sensor(nestBox("GaasSensor",
+                              sensorHalfLengths,
+                              gaas,
+                              0,                               // no rotation
+                              sensorCenterInWorld,
+                              parentVInfo,
+                              Config.getInt("sensor.copyNumber"), // for tracking purposes
+                              sensorVisible,
+                              orange,
+                              sensorSolid,
+                              forceAuxEdgeVisible,
+                              placePV,
+                              doSurfaceCheck
+                              )
+                      );
 //-----------------------------------------------------------------------------
 // construct and position the photodiodes - all 7 of them
-// PD offset - offset of its left bottom corner wrt the left bottom corner of the sensor
+// PD offset - offset of the PD center wrt the scintillator center
 //-----------------------------------------------------------------------------
+    vector<VolumeInfo> list_of_pd;
+
     for (int i=0; i<n_photodiodes; i++) {
 
       G4bool pdVisible        = Config.getBool(Form("pd%i.visible",i),true);
@@ -295,28 +298,43 @@ namespace mu2e {
       vector<double> pd_offset;
       Config.getVectorDouble(Form("pd%i.offset",i),pd_offset);
 
-      double xc = sensorCenterInWorld.x()-sensorHalfLengths[0]+pd_offset[0]+pd_half_length[0];
-      double yc = sensorCenterInWorld.y()-sensorHalfLengths[1]+pd_offset[1]+pd_half_length[1];
-      double zc = sensorCenterInWorld.z()-sensorHalfLengths[2]+pd_offset[2]+pd_half_length[2];
+      double xc = sensorCenterInWorld.x()+pd_offset[0];
+      double yc = sensorCenterInWorld.y()+pd_offset[1];
+      double zc = sensorCenterInWorld.z()+pd_offset[2];
 
       int pd_copy_number = Config.getInt(Form("pd%i.copyNumber",i));
 
       G4ThreeVector pd_pos(xc,yc,zc);
 
-      VolumeInfo pd0 (nestBox( Form("InGaAsPD%i",i),
-                               pd_half_length,
-                               gaas,
-                               0,                     // 0: no rotation
-                               pd_pos,
-                               parentVInfo,
-                               pd_copy_number,        // for volume tracking purposes
-                               pdVisible,
-                               G4Color::Red(),
-                               pdSolid,
-                               forceAuxEdgeVisible,
-                               placePV,
-                               doSurfaceCheck
-                               ));
+      VolumeInfo pd (nestBox( Form("InGaAsPD%i",i),
+                              pd_half_length,
+                              gaas,
+                              0,                     // 0: no rotation
+                              pd_pos,
+                              parentVInfo,
+                              pd_copy_number,        // for volume tracking purposes
+                              pdVisible,
+                              G4Color::Red(),
+                              pdSolid,
+                              forceAuxEdgeVisible,
+                              placePV,
+                              doSurfaceCheck
+                              )
+                    );
+
+      list_of_pd.push_back(pd);
+    }
+//-----------------------------------------------------------------------------
+// now limit the max step
+//-----------------------------------------------------------------------------
+    double max_g4_step = Config.getDouble("detector.max_g4_step");
+
+    AntiLeakRegistry& reg = art::ServiceHandle<Mu2eG4Helper>()->antiLeakRegistry();
+    G4UserLimits* stepLimit = reg.add(G4UserLimits(max_g4_step));
+    sensor.logical->SetUserLimits(stepLimit);
+
+    for (auto pd : list_of_pd) {
+      pd.logical->SetUserLimits(stepLimit);
     }
 
     return 0;

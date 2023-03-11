@@ -1,76 +1,5 @@
 # -*- mode:tcl -*-
 #------------------------------------------------------------------------------
-# STNTUPLE maker user FCL template - see read_reco.fcl
-# p1 : generate, simulate, reconstruct, stntuple
-# p2 : read, reconstruct, stntuple
-# p3 : old reco path: TPR and CPR reconstruction paths fully separated
-# p4 : read, filter, reconstruct, display
-# p5 : read, filter, reconstruct
-# p6 : read, filter, display
-#
-# variables defined in the following PROLOG can be redefined in the top-level
-# job configuration file using "@protect_ignore:" FCL construct
-#
-# GEN_ID needs to be redefined once again in the job top-level FCL file, as it 
-#        is set to "CeEndpoint" in EventGenerator/fcl/prolog.fcl
-#------------------------------------------------------------------------------
-BEGIN_PROLOG
-  bgHitFiles          : @nil
-  INPUT_MODULE        : EmptyEvent
-  TRIGGER_PATHS       : []
-  END_PATHS           : []
-  PROCESS_NAME        : nil
-  BLIND_TIME          : 500                                  # default
-  STN_COMPRESS_MCS    : "compressDigiMCs"                    # "compressRecoMCs" looks dangerous
-  STN_VDHITS_COLL_TAG : "compressDigiMCs:virtualdetector"
-  PDG_ID              : 0                                    # 0: ignore PDG_ID
-  GEN_ID              : "unknown"                            #    ignore GEN_ID check
-END_PROLOG
-#------------------------------------------------------------------------------
-#include "Offline/fcl/minimalMessageService.fcl"
-#include "Offline/fcl/standardProducers.fcl"
-#include "Offline/fcl/standardServices.fcl"
-#include "Offline/fcl/TrkCaloDt.fcl"
-#include "Offline/ProditionsService/fcl/prolog.fcl"
-#------------------------------------------------------------------------------
-# simulation prologs
-#------------------------------------------------------------------------------
-#include "Offline/Mu2eG4/fcl/prolog.fcl"
-#include "Offline/CommonMC/fcl/prolog.fcl"
-#include "Offline/TrackerMC/fcl/prolog.fcl"
-#include "Offline/CaloMC/fcl/prolog.fcl"
-#include "Offline/CRVResponse/fcl/prolog.fcl"
-#include "Offline/Filters/fcl/prolog.fcl"
-#include "Offline/Compression/fcl/prolog.fcl"
-#------------------------------------------------------------------------------
-# reconstruction prologs
-#------------------------------------------------------------------------------
-#include "Offline/TrkDiag/fcl/prolog.fcl"
-#include "Offline/TrackCaloMatching/fcl/prolog.fcl"
-#include "Offline/ParticleID/fcl/prolog.fcl"
-#include "Offline/TrkHitReco/fcl/prolog.fcl"
-#include "Offline/TrkReco/fcl/prolog.fcl"
-#include "Offline/TrkPatRec/fcl/prolog.fcl"
-#include "Offline/Mu2eKinKal/fcl/prolog.fcl"
-#include "Offline/CaloReco/fcl/prolog.fcl"
-#include "Offline/CaloCluster/fcl/prolog.fcl"
-#include "Offline/CalPatRec/fcl/prolog.fcl"
-#\\\include "Offline/Trigger/fcl/prolog_trigger.fcl"
-
-#include "Stntuple/fcl/prolog.fcl"
-#\\\include "pbar2m/fcl/prolog.fcl"
-#------------------------------------------------------------------------------
-# trigger prologs
-#------------------------------------------------------------------------------
-# #include "Offline/TrkPatRec/fcl/prolog_trigger.fcl"
-# #include "Offline/CalPatRec/fcl/prolog_trigger.fcl"
-# #include "Offline/CaloReco/fcl/prolog_trigger.fcl"
-# #include "Offline/CaloCluster/fcl/prolog_trigger.fcl"
-# #include "Offline/TrkHitReco/fcl/prolog_trigger.fcl"
-# #include "Offline/TrkReco/fcl/prolog_trigger.fcl"
-# #include "Offline/TrkFilters/fcl/prolog_trigger.fcl"
-#\\\\ #include "Offline/CaloFilters/fcl/prolog_trigger.fcl"
-#------------------------------------------------------------------------------
 # templates: do not include prologs, 
 # define table and sequence templates combining information from multiples packages
 # services are initialized in Stntuple/fcl/stntuple_templates.fcl
@@ -95,13 +24,38 @@ services : { @table::Services.SimAndReco
 	    overwrite : false
 	}
     }
-   message: @local::default_message
+
+    message                : { @table::default_message
+	#destinations.log.noTimeStamps : true
+    }
+    
+    RandomNumberGenerator  : { }
+
+    SeedService            : { @table::automaticSeeds
+	baseSeed           :    8
+	maxUniqueEngines   :  100
+    }
+
+    GeometryService        : {
+	bFieldFile         : "Offline/Mu2eG4/geom/bfgeom_v01.txt"
+	inputFile          : "gaasG4/datasets/g002s03/geom_g002s03r04.txt"
+	simulatedDetector  : { tool_type      : "ConstructGen4Setup" }
+    }
+
+    Mu2eG4Helper           : { }
+
+    ConditionsService      : { conditionsfile : "Offline/ConditionsService/data/conditions_01.txt"      }
+    GlobalConstantsService : { inputFile      : "Offline/GlobalConstantsService/data/globalConstants_01.txt" }
+
+    SeedService            : { @table::automaticSeeds
+	baseSeed           :    8
+	maxUniqueEngines   :  100
+    }
+    
 } 
 
-services.SeedService.baseSeed         : 8
-services.SeedService.maxUniqueEngines : 100
-sservices.scheduler.wantSummary        : true
-services.TFileService.fileName        : "nts._USER_._DATASET_._DSCONF_.sequencer.root" 
+services.scheduler.wantSummary  : true
+services.TFileService.fileName    : "nts._USER_._DATASET_._DSCONF_.sequencer.root" 
 
 # Limit the amount of "Begin processing the ... record" messages
 services.message.destinations.log.categories.ArtReport.reportEvery : 1

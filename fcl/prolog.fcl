@@ -11,14 +11,81 @@ stepperout: {
 }
 
 gaasG4 : {      
-    producers : {} 
+    producers : {
+	#    generate : @local::generate
+	generate: {
+	    module_type          : EventGenerator
+	    inputfile            : "gaasG4/fcl/Co57_gun.txt"
+	    allowReplacement     : true
+	    messageOnReplacement : true
+	}
+
+	g4run                :  { @table::g4run
+	    # The line below causes a StepPointMC being stored for each step;
+	    # comment it out to disable it
+	    
+	    Mu2eG4SteppingOnlyCut : @local::stepperout      ## defined in gaasG4/fcl/prolog.fcl
+	    Mu2eG4StackingOnlyCut : @local::mu2eg4NoCut
+	    # Mu2eG4CommonCut: { type: kineticEnergy cut: 1000000. }
+
+	    physics : { @table::g4run.physics
+		physicsListName : "QGSP_BERT"
+                minRangeCut     : 0.001        ## claimed to be in mm
+		# bfieldMaxStep   : 500000.            # not implemented (no field)
+	    }
+
+	    TrajectoryControl : { @table::g4run.TrajectoryControl
+		mcTrajectoryMinSteps      : 0
+		mcTrajectoryMomentumCut   : 0.  # MeV/c
+		saveTrajectoryMomentumCut : 0.  # MeV/c
+		perVolumeMinDistance      : {}
+	    }
+	    
+	    SDConfig: {
+		enableSD         : []                      # not implemented
+		TimeVD           : { times : [0.01] }
+	    }
+
+	    debug            :  { @table::g4run.debug
+		# diagLevel         : 1
+		# printElements     : true
+		# worldVerbosityLevel : 2
+		# trackingVerbosityLevel : 1
+#------------------------------------------------------------------------------
+# this prints steps and energy depositions, don't remember from where
+#------------------------------------------------------------------------------
+#		steppingVerbosityLevel : 1
+		
+		# writeGDML                : true
+		GDMLFileName             : "g002s03r04.gdml"
+
+		# checkFieldMap              : 0    # not implemented (no field)
+		# printPhysicsProcessSummary : true
+	    }
+
+	    visualization : { @table::g4run.visualization 
+		# initMacro : "Mu2eG4/test/visxz.mac"
+		# initMacro : "Mu2eG4/test/vismqt.mac"
+	    }
+	}
+	
+	randomsaver          : @local::randomsaver
+    } 
+
     filters   : {
         SpmcFilter : { module_type : SpmcFilter
             spmcCollTag : "g4run:stepper"
             minEDep     : 1.e-10    # MeV, just something positive
         }
     }
+
     analyzers   : {
+	GaasLayerAna : { module_type : GaasLayerAna                 # defaults of the base class
+	    spmcCollTag        : "g4run:stepper"
+	}
+    }
+
+    paths : {
     }
 }
 END_PROLOG

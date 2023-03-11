@@ -1,0 +1,33 @@
+# -*- mode:tcl -*-
+#------------------------------------------------------------------------------
+# use Gen4Setup - reco 'r04'
+#------------------------------------------------------------------------------
+#include "gaasG4/fcl/gaasG4.fcl"
+
+process_name : Gen4Setup                 ## Give this job a name.
+
+source : {
+  module_type : EmptyEvent
+  maxEvents   : 1
+}
+
+services : { @table::services }         ## from gaasG4/fcl/stntuple_gaas.fcl
+
+physics : {
+    producers : { @table::gaasG4.producers }
+    filters   : { @table::gaasG4.filters   }
+    analyzers : { @table::gaasG4.analyzers }
+
+    p1             : [ "generate", "g4run" ]
+    trigger_paths  : [ "p1" ]
+    end_paths      : [      ]
+}
+#------------------------------------------------------------------------------
+# the sensor and the source: Co-57 photons
+#------------------------------------------------------------------------------
+services.GeometryService.inputFile         : "gaasG4/datasets/g002s03/geom_g002s03r04.txt"
+physics.producers.generate.inputfile       : "gaasG4/fcl/Co57_gun.txt"
+
+physics.producers.g4run.debug.writeGDML    : true
+physics.producers.g4run.debug.GDMLFileName : "g002s03r04.gdml"
+#------------------------------------------------------------------------------

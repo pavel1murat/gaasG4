@@ -35,8 +35,6 @@
 #include "Offline/MCDataProducts/inc/StepPointMC.hh"
 #include "Offline/DataProducts/inc/VirtualDetectorId.hh"
 
-#include "Stntuple/mod/StntupleModule.hh"
-
 // ROOT includes
 // #include "TApplication.h"
 // #include "TArc.h"
@@ -45,6 +43,7 @@
 // #include "TDirectory.h"
 // #include "TGraph.h"
 #include "TH1F.h"
+#include "TH2F.h"
 // #include "TLine.h"
 // #include "TBox.h"
 // #include "TMarker.h"
@@ -60,57 +59,43 @@ using CLHEP::Hep3Vector;
 
 namespace mu2e {
 
-  class GaasLayerAna : public StntupleModule {
+  class GaasLayerAna : public art::EDAnalyzer {
   private:
-//-----------------------------------------------------------------------------
-// Module labels 
-//-----------------------------------------------------------------------------
-    std::string        fModuleLabel;	             // this module label
-    std::string        processName_;
-    std::string        fG4ModuleLabel;
+    std::string        _spmcCollTag;
     
-    std::string        producerName_;
-    std::string        fStrawHitMaker;
-    std::string        fStrawHitPosMaker;
-    std::string        fFlagBgrHitsModuleLabel;
+    const mu2e::StepPointMCCollection*           _spmcColl;            //
     
-    int                fPdgCode;
-    int                fGeneratorCode;
-
-    const mu2e::StepPointMCCollection*           fSteps;            //
-
     struct Hist_t {
-      TH1F*   fEDep;                  // radial distance between the StepPointMC and the corresponding hit
+      TH1F*   fNSteps;
+      TH1F*   fEDepTot;
+      TH1F*   fEDepGaas;
+      TH1F*   fEDepPD;
+      TH2F*   fYVsX;
     } ;
 
     Hist_t fHist;
-
 
   public:
     explicit GaasLayerAna(fhicl::ParameterSet const& pset);
     virtual ~GaasLayerAna();
 
-    void     getData(const art::Event* Evt);
-    void     Init   (art::Event* Evt);
-    void     Debug_003();   // handles fDr
+    void     getData(const art::Event& AnEvent);
+    void     Init   (const art::Event& AnEvent);
+    void     Debug_003();
 //-----------------------------------------------------------------------------
 // overloaded virtual methods of the base class
 //-----------------------------------------------------------------------------
-    virtual void     beginJob();
-    virtual void     endJob  ();
-    virtual bool     filter (art::Event& Evt);
+    virtual void     beginJob()                       override;
+    virtual void     endJob  ()                       override;
+    virtual void     analyze (const art::Event& Evt)  override;
   };
 
 
 //-----------------------------------------------------------------------------
   GaasLayerAna::GaasLayerAna(fhicl::ParameterSet const& pset): 
-    StntupleModule            (pset,"GaasLayerAna"),
-    fModuleLabel              (pset.get<std::string>("module_label"                 )),
-    processName_              (pset.get<std::string>("processName"          ,""     )),
-    fG4ModuleLabel            (pset.get<std::string>("g4ModuleLabel"        ,"g4run"))
-  {
-
-  }
+    EDAnalyzer                (pset),
+    _spmcCollTag              (pset.get<std::string>("spmcCollTag"))
+  {}
 
 //-----------------------------------------------------------------------------
   GaasLayerAna::~GaasLayerAna() { 
@@ -126,51 +111,43 @@ namespace mu2e {
 
     art::ServiceHandle<art::TFileService> tfs;
 
-//     art::TFileDirectory tfdir = tfs->mkdir( "CosmicDYB" );
-//     _cosmicMultiplicityH = tfdir.make<TH1D>( "MultiplicityH", "Cosmic Multiplicity", 20, -0.5, 19.5);
-
-    fHist.fEDep = tfs->make<TH1F>("edep" ,"Deposited Energy", 1200,0, 6);
-//-----------------------------------------------------------------------------
-// define collection names to be used for initialization
-//-----------------------------------------------------------------------------
+    fHist.fNSteps   = tfs->make<TH1F>("nsteps"   ,"N(steps), GaAs+PD"      , 100 ,0, 100);
+    fHist.fEDepTot  = tfs->make<TH1F>("edep_tot" ,"Deposited Energy, total", 6000,0, 6);
+    fHist.fEDepGaas = tfs->make<TH1F>("edep_gaas","Deposited Energy, GaAs" , 6000,0, 6);
+    fHist.fEDepPD   = tfs->make<TH1F>("edep_pd"  ,"Deposited Energy, PD"   , 6000,0, 6);
+    fHist.fYVsX     = tfs->make<TH2F>("y_vs_x"   ,"Y vs X, all"            , 200 ,-0.50,0.50,200,-0.50,0.50);
   }
 
 //-----------------------------------------------------------------------------
 // get data from the event record
 //-----------------------------------------------------------------------------
-  void GaasLayerAna::getData(const art::Event* Evt) {
-    //    int   rc (0);
-    //    const char* oname = "GaasLayerAna::getData";
+  void GaasLayerAna::getData(const art::Event& AnEvent) {
 
-    art::Handle<StepPointMCCollection> stepsHandle;
-    art::Selector sel(art::ProductInstanceNameSelector("stepper") &&
-		      art::ProcessNameSelector(processName_) &&
-		      art::ModuleLabelSelector(fG4ModuleLabel)  );
-    Evt->get(sel, stepsHandle);
-    if (stepsHandle.isValid()) fSteps =  (const mu2e::StepPointMCCollection*) &(*stepsHandle);
-    else                       fSteps = NULL;
+    art::Handle<StepPointMCCollection> spmccH;
+
+    /* bool ok = */ AnEvent.getByLabel("g4run:stepper",spmccH);
+
+    if (spmccH.isValid()) _spmcColl =  spmccH.product();
+    else                  _spmcColl = NULL;
   }
 
 //-----------------------------------------------------------------------------
-  void GaasLayerAna::Init(art::Event* Evt) {
+  void GaasLayerAna::Init(const art::Event& Evt) {
   }
 
 
   //-----------------------------------------------------------------------------
-  bool GaasLayerAna::filter(art::Event& Evt) {
-    const char* oname = "GaasLayerAna::filter";
+  void GaasLayerAna::analyze(const art::Event& Evt) {
+    //const char* oname = "GaasLayerAna::analyzer";
 
-    printf("[%s] RUN: %10i EVENT: %10i\n",oname,Evt.run(),Evt.event());
+    // printf("[%s] RUN: %10i EVENT: %10i\n",oname,Evt.run(),Evt.event());
 
-//-----------------------------------------------------------------------------
-// get event data and initialize data blocks
-//-----------------------------------------------------------------------------
-    getData(&Evt);
+    getData(Evt);
 
     Debug_003();
     //    if  (DebugBit(3)) Debug_003();
 
-    return true;
+    //    return true;
   }
 
 //-----------------------------------------------------------------------------
@@ -181,20 +158,32 @@ namespace mu2e {
     
     int nsteps;
 
-    const mu2e::StepPointMC        *step;
-
-    nsteps = fSteps->size();
+    nsteps = _spmcColl->size();
     
-    double edep = 0;
+    double edep_tot(0), edep_gaas(0), edep_pd(0);
 
     for (int i=0; i<nsteps; i++) {
-      step =  &fSteps->at(i);
-      if (step->volumeId() == 2) {
-	edep += step->totalEDep();
+      const mu2e::StepPointMC* step =  &_spmcColl->at(i);
+
+      int vol_id = step->volumeId();
+
+      if ((vol_id > 999) and (vol_id < 2000)) {
+        edep_pd += step->totalEDep();
       }
+      else if (step->volumeId() == 2000) {
+	edep_gaas += step->totalEDep();
+      }
+
+      fHist.fYVsX->Fill(step->position().x(),step->position().y());
     }
 
-    fHist.fEDep->Fill(edep);
+    edep_tot = edep_gaas+edep_pd;
+
+    fHist.fNSteps->Fill(nsteps);
+    fHist.fEDepGaas->Fill(edep_gaas);
+    fHist.fEDepPD->Fill(edep_pd);
+    fHist.fEDepTot->Fill(edep_tot);
+
   }
     
 }

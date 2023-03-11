@@ -1,15 +1,29 @@
 #
+* ------------------------------------------------------------------------------
+* dataset naming conventions                                          
 
-* s01: Am241 alpha  5.5 MeV alpha particles
-* s02: Am241 gamma  60  keV photons
-* s03: Co57  gamma  122 keV photons
+   dataset IDs have a form of gXXXsYYrZZ
+
+  _a) simulated sensor geometry:_
+
+  g001: old sensor with 7 PDs
+  g002: a 500x500 sensor with the PD fully covering the top
 
 
-* g001: old sensor with 7 PDs
+  _b) source definitions_
 
-* g002: a 500x500 sensor  with the PD fully covering the top
+  s01: Am241 alpha  5.5 MeV alpha particles
+  s02: Am241 gamma  60  keV photons
+  s03: Co57  gamma  122 keV photons
 
+  _c) software version / flavor_
 
-* datasets : 
-** det01s01 : 1 layer PD covers all of it
+  r04 : geometry described using file:../src/ConstructGen4Setup_tool.cc
 
+  FCLs corresponding to different sources are all placed into the same directory
+
+* compiling optimized saves a factor of x5 
+* default histograms in GaasLayerAna:
+  - edep total, PD+scintillator
+  - edep, PD-only
+  - edep, sensor-only
