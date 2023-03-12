@@ -1,6 +1,7 @@
 # -*- mode:tcl -*-
 #------------------------------------------------------------------------------
-# use Gen4Setup - reco 'r04'
+# 's01' : Am-241 alpha source 
+# 'r04' : ConstructGen4Setup
 #------------------------------------------------------------------------------
 #include "gaasG4/fcl/gaasG4.fcl"
 
@@ -26,14 +27,13 @@ physics : {
     end_paths      : [ e1 ]
 }
 #------------------------------------------------------------------------------
-# the sensor and the source: Co-57 photons
 #------------------------------------------------------------------------------
-services.GeometryService.inputFile : "gaasG4/datasets/g002s03r04/geom_g002s03r04.txt"
-physics.generate.inputfile         : "gaasG4/fcl/Co57_gun.txt"
+services.GeometryService.inputFile : "gaasG4/datasets/g002s01r04/geom_g002s01r04.txt"
+physics.generate.inputfile         : "gaasG4/fcl/Am241_alpha_gun.txt"
 
 #------------------------------------------------------------------------------
 services.message.destinations.log.categories.ArtReport.reportEvery : 1000
 services.message.destinations.log.categories.ArtReport.limit       : 1000000
 #------------------------------------------------------------------------------
-services.TFileService.fileName : "gaasqd.g002s03r04.s1_ana.hist" 
+services.TFileService.fileName : "gaasqd.g002s01r04.s1_ana.hist" 
 #------------------------------------------------------------------------------

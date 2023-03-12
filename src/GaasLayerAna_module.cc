@@ -60,20 +60,28 @@ using CLHEP::Hep3Vector;
 namespace mu2e {
 
   class GaasLayerAna : public art::EDAnalyzer {
+  public:
+    enum {
+      kNEventHistSets = 100 
+    };
+
   private:
     std::string        _spmcCollTag;
     
     const mu2e::StepPointMCCollection*           _spmcColl;            //
     
-    struct Hist_t {
+    struct EventHist_t {
       TH1F*   fNSteps;
       TH1F*   fEDepTot;
       TH1F*   fEDepGaas;
       TH1F*   fEDepPD;
       TH2F*   fYVsX;
+      TH1F*   fDeVsZ;
     } ;
 
-    Hist_t fHist;
+    struct Hist_t {
+      EventHist_t* fEvent[kNEventHistSets];
+    } _hist;
 
   public:
     explicit GaasLayerAna(fhicl::ParameterSet const& pset);
@@ -82,6 +90,9 @@ namespace mu2e {
     void     getData(const art::Event& AnEvent);
     void     Init   (const art::Event& AnEvent);
     void     Debug_003();
+
+    void     bookEventHistograms(EventHist_t*    Hist, art::TFileDirectory* Dir);
+    void     bookHistograms();
 //-----------------------------------------------------------------------------
 // overloaded virtual methods of the base class
 //-----------------------------------------------------------------------------
@@ -106,16 +117,49 @@ namespace mu2e {
   void GaasLayerAna::endJob() {
     art::ServiceHandle<art::TFileService> tfs;
   }
+
+
 //-----------------------------------------------------------------------------
-  void GaasLayerAna::beginJob() {
+  void GaasLayerAna::bookEventHistograms(EventHist_t* Hist, art::TFileDirectory* Dir) {
 
     art::ServiceHandle<art::TFileService> tfs;
 
-    fHist.fNSteps   = tfs->make<TH1F>("nsteps"   ,"N(steps), GaAs+PD"      , 100 ,0, 100);
-    fHist.fEDepTot  = tfs->make<TH1F>("edep_tot" ,"Deposited Energy, total", 6000,0, 6);
-    fHist.fEDepGaas = tfs->make<TH1F>("edep_gaas","Deposited Energy, GaAs" , 6000,0, 6);
-    fHist.fEDepPD   = tfs->make<TH1F>("edep_pd"  ,"Deposited Energy, PD"   , 6000,0, 6);
-    fHist.fYVsX     = tfs->make<TH2F>("y_vs_x"   ,"Y vs X, all"            , 200 ,-0.50,0.50,200,-0.50,0.50);
+    Hist->fNSteps   = Dir->make<TH1F>("nsteps"   ,"N(steps), GaAs+PD"      , 100 ,0, 100);
+    Hist->fEDepTot  = Dir->make<TH1F>("edep_tot" ,"Deposited Energy, total", 6000,0, 6);
+    Hist->fEDepGaas = Dir->make<TH1F>("edep_gaas","Deposited Energy, GaAs" , 6000,0, 6);
+    Hist->fEDepPD   = Dir->make<TH1F>("edep_pd"  ,"Deposited Energy, PD"   , 6000,0, 6);
+    Hist->fYVsX     = Dir->make<TH2F>("y_vs_x"   ,"Y vs X, all"            , 200 ,-0.50,0.50,200,-0.50,0.50);
+    Hist->fDeVsZ    = Dir->make<TH1F>("de_vs_z"  ,"dE vs Z"                , 20  , 0,20e-3);
+  }
+
+//-----------------------------------------------------------------------------
+  void GaasLayerAna::bookHistograms() {
+    art::ServiceHandle<art::TFileService> tfs;
+
+    char   folder_name[200];
+
+    TH1::AddDirectory(0);
+    
+    int book_event_histset[kNEventHistSets];
+    for (int i=0; i<kNEventHistSets; i++) book_event_histset[i] = 0;
+
+    book_event_histset[ 0] = 1;                // all events
+    book_event_histset[ 1] = 1;                // events with the total edep 
+
+    for (int i=0; i<kNEventHistSets; i++) {
+      if (book_event_histset[i] != 0) {
+        sprintf(folder_name,"evt_%i",i);
+        art::TFileDirectory tfdir = tfs->mkdir(folder_name);
+
+        _hist.fEvent[i] = new EventHist_t;
+        bookEventHistograms(_hist.fEvent[i],&tfdir);
+      }
+    }
+  }
+
+//-----------------------------------------------------------------------------
+  void GaasLayerAna::beginJob() {
+    bookHistograms();
   }
 
 //-----------------------------------------------------------------------------
@@ -165,25 +209,44 @@ namespace mu2e {
     for (int i=0; i<nsteps; i++) {
       const mu2e::StepPointMC* step =  &_spmcColl->at(i);
 
+      float edep = step->totalEDep();
+      float z    = step->position().z();
+
       int vol_id = step->volumeId();
 
       if ((vol_id > 999) and (vol_id < 2000)) {
-        edep_pd += step->totalEDep();
+        edep_pd   += edep;
       }
       else if (step->volumeId() == 2000) {
-	edep_gaas += step->totalEDep();
+//-----------------------------------------------------------------------------
+// GaAs sensor
+//-----------------------------------------------------------------------------
+        _hist.fEvent[0]->fDeVsZ->Fill(-z,edep);
+        if (edep > 0) {
+          _hist.fEvent[1]->fDeVsZ->Fill(-z,edep);
+          edep_gaas += edep;
+        }
       }
 
-      fHist.fYVsX->Fill(step->position().x(),step->position().y());
+      _hist.fEvent[0]->fYVsX->Fill(step->position().x(),step->position().y());
+      if (edep > 0) {
+        _hist.fEvent[1]->fYVsX->Fill(step->position().x(),step->position().y());
+      }
     }
 
     edep_tot = edep_gaas+edep_pd;
 
-    fHist.fNSteps->Fill(nsteps);
-    fHist.fEDepGaas->Fill(edep_gaas);
-    fHist.fEDepPD->Fill(edep_pd);
-    fHist.fEDepTot->Fill(edep_tot);
+    _hist.fEvent[0]->fNSteps->Fill(nsteps);
+    _hist.fEvent[0]->fEDepGaas->Fill(edep_gaas);
+    _hist.fEvent[0]->fEDepPD->Fill(edep_pd);
+    _hist.fEvent[0]->fEDepTot->Fill(edep_tot);
 
+    if (edep_tot > 0) {
+      _hist.fEvent[1]->fNSteps->Fill(nsteps);
+      _hist.fEvent[1]->fEDepGaas->Fill(edep_gaas);
+      _hist.fEvent[1]->fEDepPD->Fill(edep_pd);
+      _hist.fEvent[1]->fEDepTot->Fill(edep_tot);
+    }
   }
     
 }

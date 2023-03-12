@@ -25,7 +25,7 @@ physics : {
 #------------------------------------------------------------------------------
 # the sensor and the source: Co-57 photons
 #------------------------------------------------------------------------------
-services.GeometryService.inputFile         : "gaasG4/datasets/g002s03/geom_g002s03r04.txt"
+services.GeometryService.inputFile         : "gaasG4/datasets/g002s03r04/geom_g002s03r04.txt"
 physics.producers.generate.inputfile       : "gaasG4/fcl/Co57_gun.txt"
 
 physics.producers.g4run.debug.writeGDML    : true

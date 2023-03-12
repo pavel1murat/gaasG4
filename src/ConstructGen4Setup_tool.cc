@@ -266,7 +266,7 @@ namespace mu2e {
 
     const G4ThreeVector sensorCenterInWorld(Config.getHep3Vector("sensor.centerInWorld"));
 
-    VolumeInfo sensor(nestBox("GaasSensor",
+    VolumeInfo sensor(nestBox("GaAsSensor",
                               sensorHalfLengths,
                               gaas,
                               0,                               // no rotation
@@ -285,8 +285,6 @@ namespace mu2e {
 // construct and position the photodiodes - all 7 of them
 // PD offset - offset of the PD center wrt the scintillator center
 //-----------------------------------------------------------------------------
-    vector<VolumeInfo> list_of_pd;
-
     for (int i=0; i<n_photodiodes; i++) {
 
       G4bool pdVisible        = Config.getBool(Form("pd%i.visible",i),true);
@@ -321,8 +319,6 @@ namespace mu2e {
                               doSurfaceCheck
                               )
                     );
-
-      list_of_pd.push_back(pd);
     }
 //-----------------------------------------------------------------------------
 // now limit the max step
@@ -331,11 +327,35 @@ namespace mu2e {
 
     AntiLeakRegistry& reg = art::ServiceHandle<Mu2eG4Helper>()->antiLeakRegistry();
     G4UserLimits* stepLimit = reg.add(G4UserLimits(max_g4_step));
-    sensor.logical->SetUserLimits(stepLimit);
 
-    for (auto pd : list_of_pd) {
-      pd.logical->SetUserLimits(stepLimit);
+    mu2e::Mu2eG4Helper* mgh = art::ServiceHandle<mu2e::Mu2eG4Helper>().get();
+
+    boost::regex expr1("GaAsSensor");
+    std::vector<mu2e::VolumeInfo const*> v1 = mgh->locateVolInfo(expr1);
+
+    printf("%s: v1.size() : %i\n",__func__,(int) v1.size());
+    for ( auto v : v1 ){
+      v->logical->SetUserLimits( stepLimit );
+      printf(" Activated step limit for volume %s\n",v->logical->GetName().data());
     }
+
+    for (int i=0; i<n_photodiodes; i++) {
+      boost::regex expr2(Form("InGaAsPD%i",i));
+      std::vector<mu2e::VolumeInfo const*> v2 = mgh->locateVolInfo(expr2);
+    
+      printf("%s: regexp:%s: v2.size() : %i\n",__func__,Form("InGaAsPD%i",i),(int) v2.size());
+
+      for ( auto v : v2 ){
+        v->logical->SetUserLimits( stepLimit );
+        printf(" Activated step limit for volume %s\n",v->logical->GetName().data());
+      }
+    }
+
+    // sensor.logical->SetUserLimits(stepLimit);
+
+    // for (auto pd : list_of_pd) {
+    //   pd.logical->SetUserLimits(stepLimit);
+    // }
 
     return 0;
   }

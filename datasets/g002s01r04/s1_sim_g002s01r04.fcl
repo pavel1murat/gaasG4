@@ -1,125 +1,30 @@
 # -*- mode:tcl -*-
 #------------------------------------------------------------------------------
-# use Gen4Setup - reco 'r04'
+# 's01' : Am-241 alpha source photons
+# 'r04' : use Gen4Setup
 #------------------------------------------------------------------------------
-#include "Offline/fcl/minimalMessageService.fcl"
-#include "Offline/fcl/standardProducers.fcl"
-#include "Offline/fcl/standardServices.fcl"
+#include "gaasG4/fcl/gaasG4.fcl"
 
-#include "gaasG4/fcl/prolog.fcl"
-
-#include "gaasG4/fcl/stntuple_gaas.fcl"
-
-process_name : Gen4Setup   # Give this job a name.
+process_name : Gen4Setup                 ## Give this job a name.
 
 source : {
   module_type : EmptyEvent
   maxEvents   : 100
 }
 
-services : { 
-
-    message               : { @table::default_message
-	#destinations.log.noTimeStamps : true
-    }
-    
-    TFileService          : { fileName : "sim.gaas.g002s01r04.gaasqd.001000_00000000.hist" }
-    RandomNumberGenerator : { }
-
-    GeometryService        : { 
-	bFieldFile         : "Offline/Mu2eG4/geom/bfgeom_v01.txt"
-	inputFile          : "gaasG4/datasets/g002s01/geom_g002s01r04.txt"
-	simulatedDetector  : { tool_type : "ConstructGen4Setup" }
-    }
-
-    ConditionsService      : { conditionsfile : "Offline/ConditionsService/data/conditions_01.txt"      }
-    GlobalConstantsService : { inputFile      : "Offline/GlobalConstantsService/data/globalConstants_01.txt" }
-
-    Mu2eG4Helper           : { }
-
-    SeedService            : { @table::automaticSeeds
-	# Initialze seeding of random engines: 
-	baseSeed         :    0
-	maxUniqueEngines :  100
-    }
-}
-services.scheduler.wantSummary   : true
+services : { @table::services }         ## from gaasG4/fcl/stntuple_gaas.fcl
 
 physics : {
-    producers:  {
-	#    generate : @local::generate
-	generate: {
-	    module_type          : EventGenerator
-	    inputfile            : "gaasG4/fcl/Am241_alpha_gun.txt"
-	    allowReplacement     : true
-	    messageOnReplacement : true
-	}
-
-	g4run                :  { @table::g4run
-	    # The line below causes a StepPointMC being stored for each step;
-	    # comment it out to disable it
-	    
-	    Mu2eG4SteppingOnlyCut : @local::stepperout      ## defined in gaasG4/fcl/prolog.fcl
-	    Mu2eG4StackingOnlyCut : @local::mu2eg4NoCut
-	    # Mu2eG4CommonCut: { type: kineticEnergy cut: 1000000. }
-
-	    physics : { @table::g4run.physics
-		physicsListName : "QGSP_BERT"
-                minRangeCut     : 0.001        ## claimed to be in mm
-		# bfieldMaxStep   : 500000.            # not implemented (no field)
-	    }
-
-	    TrajectoryControl : { @table::g4run.TrajectoryControl
-		mcTrajectoryMinSteps      : 0
-		mcTrajectoryMomentumCut   : 0.  # MeV/c
-		saveTrajectoryMomentumCut : 0.  # MeV/c
-		perVolumeMinDistance      : {}
-	    }
-	    
-	    SDConfig: {
-		enableSD         : []                      # not implemented
-		TimeVD           : { times : [0.01] }
-	    }
-
-	    debug            :  { @table::g4run.debug
-		# diagLevel         : 1
-		# printElements     : true
-		# worldVerbosityLevel : 2
-		# trackingVerbosityLevel : 1
-		steppingVerbosityLevel : 1
-		
-		# writeGDML                : true
-		GDMLFileName             : "g002s01r04.gdml"
-
-		# checkFieldMap              : 0    # not implemented (no field)
-		# printPhysicsProcessSummary : true
-	    }
-
-	    visualization : { @table::g4run.visualization 
-		# initMacro : "Mu2eG4/test/visxz.mac"
-		# initMacro : "Mu2eG4/test/vismqt.mac"
-	    }
-	}
-	
-	randomsaver          : @local::randomsaver
-    }
-
-    filters   : { @table::gaasG4.filters }
-
-    analyzers : { @table::gaasG4.analyzers 
-	GaasLayerAna : {@table::StntupleTModuleFclDefaults                   # defaults of the base class
-	    module_type        : GaasLayerAna
-	    g4ModuleLabel      : "g4run"
-	    debugBits          : {}
-	}
-    }
+    producers : { @table::gaasG4.producers }
+    filters   : { @table::gaasG4.filters   }
+    analyzers : { @table::gaasG4.analyzers }
 
     p1 : [ generate , g4run , SpmcFilter, randomsaver]
     p2 : [ generate , g4run , SpmcFilter, randomsaver]
 
     e1 : [ GaasLayerAna ]
     e2 : [ GaasLayerAna, outfile ]
-    e3 : [ GaasLayerAna, dumper , outfile]
+    e3 : [ GaasLayerAna, dumper, outfile]
 
     trigger_paths  : [ p1 ]
     end_paths      : [ e2 ]
@@ -137,11 +42,15 @@ outputs:  {
       module_type              : FileDumperOutput
       wantProductFullClassName : true
   }
-
 }
-# Limit the amount of "Begin processing the ... record" messages
-services.message.destinations.log.categories.ArtReport.reportEvery : 100
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+services.GeometryService.inputFile   : "gaasG4/datasets/g002s01r04/geom_g002s01r04.txt"
+physics.producers.generate.inputfile : "gaasG4/fcl/Am241_alpha_gun.txt"
+
+# physics.producers.g4run.debug.steppingVerbosityLevel : 1
+#------------------------------------------------------------------------------
+services.message.destinations.log.categories.ArtReport.reportEvery : 1000
 services.message.destinations.log.categories.ArtReport.limit       : 1000000
 #------------------------------------------------------------------------------
-services.TFileService.fileName : "gaasqd.g002s01r04.s1_ana.hist" 
-#------------------------------------------------------------------------------
+services.TFileService.fileName : "sim.gaas.g002s01r04.gaasqd.001000_00000000.hist" 
