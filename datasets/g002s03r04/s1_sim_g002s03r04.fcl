@@ -51,7 +51,7 @@ outputs:  {
 services.GeometryService.inputFile   : "gaasG4/datasets/g002s03r04/geom_g002s03r04.txt"
 physics.producers.generate.inputfile : "gaasG4/fcl/Co57_gun.txt"
 
-physics.producers.g4run.debug.steppingVerbosityLevel : 1
+# physics.producers.g4run.debug.steppingVerbosityLevel : 1
 #------------------------------------------------------------------------------
 services.message.destinations.log.categories.ArtReport.reportEvery : 1000
 services.message.destinations.log.categories.ArtReport.limit       : 1000000

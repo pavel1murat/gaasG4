@@ -19,10 +19,10 @@
 services : { @table::Services.SimAndReco 
     TimeTracker : {
 	printSummary : true
-	dbOutput : {
-	    filename  : ""
-	    overwrite : false
-	}
+# 	dbOutput : {
+# 	    filename  : "timetracker.sqlite"
+# 	    overwrite : false
+# 	}
     }
 
     message                : { @table::default_message

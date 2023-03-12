@@ -41,9 +41,10 @@ G4CPPFLAGS = [ '-DG4OPTIMISE',
 
 rootlibs  = env['ROOTLIBS']
 
-## g4mt = env['G4MT'];
-## if g4mt == 'on':
-##    G4CPPFLAGS.append('-DG4MULTITHREADED')
+if ( not ("EG"   in rootlibs)): rootlibs.insert(rootlibs.index("Physics")+1,"EG");
+if ( not ("Eve"  in rootlibs)): rootlibs.insert(rootlibs.index("EG"     )+1,"Eve");
+if ( not ("Geom" in rootlibs)): rootlibs.insert(rootlibs.index("Eve"    )+1,"Geom");
+if ( not ("RGL"  in rootlibs)): rootlibs.insert(rootlibs.index("Geom"   )+1,"RGL");
 
 # Compiler switches if we want to build G4 with OPENGL and possibly Qt
 
@@ -186,8 +187,8 @@ XERCESC_LIBS = [ 'xerces-c' ]
 
 mainlib = helper.make_mainlib ( [
     'Stntuple_mod',
-    'mu2e_G4Helper_G4Helper_service',
-    'mu2e_G4Helper',
+    'mu2e_Mu2eG4Helper_Mu2eG4Helper_service',
+    'mu2e_Mu2eG4Helper',
     'mu2e_SeedService_SeedService_service',
     'mu2e_Mu2eUtilities',
     'mu2e_GeometryService',
@@ -205,7 +206,7 @@ mainlib = helper.make_mainlib ( [
     'mu2e_ProductionTargetGeom',
     'mu2e_ProtonBeamDumpGeom',
     'mu2e_StoppingTargetGeom',
-    'mu2e_TTrackerGeom',
+    # 'mu2e_TTrackerGeom',
     'mu2e_TrackerGeom',
     'mu2e_GeomPrimitives',
     'mu2e_GlobalConstantsService',
@@ -228,7 +229,7 @@ mainlib = helper.make_mainlib ( [
     'tbb',
     'cetlib',
     'cetlib_except',
-    'HepPDT',
+    # 'HepPDT',
     G4LIBS,
     GS_LIBS,
     XERCESC_LIBS,
